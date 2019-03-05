@@ -188,7 +188,6 @@ class WifiClock:
 
                 dp = dp >> 1
                 value = value // 10
-                :w
 
         elif (0 > value >= _MIN_VALUE_DEC) and (0b000000 <= dp <= 0b111111):
             self.current_num = value
@@ -207,7 +206,6 @@ class WifiClock:
                     self.register(_DIGIT_DICT[i], current_value)
 
                 dp = dp >> 1
-
                 value = value // 10
 
         else:
