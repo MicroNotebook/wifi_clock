@@ -33,6 +33,8 @@ _DIGIT_DICT = {
     5: _DIGIT5,
 }
 
+_DP = 0x80
+
 _RED_LED_PIN = 12
 _GREEN_LED_PIN = 13
 _BLUE_LED_PIN = 15
@@ -83,6 +85,7 @@ class WifiClock:
 
         # initialize current number
         self.current_num = None
+        self.current_dp = 0b000000
 
         # initialize timer and rtc
         self.sta_if = network.WLAN(network.STA_IF)
@@ -169,20 +172,42 @@ class WifiClock:
             self.register(_DIGIT_DICT[i], 0x0)
 
 
-    # Write a decimal value to the display
-    def write_num(self, value):
+    # Write a decimal value to the display, dp is 6 bit binary value representing where to put decimal points
+    def write_num(self, value, dp=0b000000):
         self.register(_DECODEMODE, 0xFF)
-        if (0 <= value <= _MAX_VALUE_DEC):
+        if (0 <= value <= _MAX_VALUE_DEC) and (0b000000 <= dp <= 0b111111):
             self.current_num = value
+            self.current_dp = dp
+
             for i in range(6):
-                self.register(_DIGIT_DICT[i], value % 10)
+                current_value = value % 10
+
+                if dp & 1:
+                    
+                    self.register(_DIGIT_DICT[i], current_value | _DP )
+                else:
+                    self.register(_DIGIT_DICT[i], current_value)
+
+                dp = dp >> 1
                 value = value // 10
-        elif (0 > value >= _MIN_VALUE_DEC):
+        elif (0 > value >= _MIN_VALUE_DEC) and (0b000000 <= dp <= 0b111111):
             self.current_num = value
+            self.current_dp = dp
+
             value = -value
             self.register(_DIGIT5, 0xA)
+
             for i in range(5):
-                self.register(_DIGIT_DICT[i], value % 10)
+                current_value = value % 10
+
+                if dp & 1:
+                    
+                    self.register(_DIGIT_DICT[i], current_value | _DP )
+                else:
+                    self.register(_DIGIT_DICT[i], current_value)
+
+                dp = dp >> 1
+
                 value = value // 10
         else:
             raise ValueError("Value out of range")
@@ -236,14 +261,14 @@ class WifiClock:
     def increment_num(self):
         if (self.current_num + 1) > _MAX_VALUE_DEC:
             self.current_num = 0
-        self.write_num(self.current_num + 1)
+        self.write_num(self.current_num + 1, self.current_dp)
 
 
     # Decrement the current number on the display
     def decrement_num(self):
         if (self.current_num - 1) < _MIN_VALUE_DEC:
             self.current_num = 0
-        self.write_num(self.current_num - 1)
+        self.write_num(self.current_num - 1, self.current_dp)
 
 
     # Read hours, minutes, and seconds from rtc and and write to the display
@@ -268,7 +293,7 @@ class WifiClock:
             time_str += '0'
         time_str += str(seconds)
 
-        self.write_num(int(time_str))
+        self.write_num(int(time_str), 0b010100)
 
 
     # Debounce function for debouncing buttons
@@ -281,6 +306,3 @@ class WifiClock:
                 return not flag
 
         return not flag
-
-
-            
