@@ -12,8 +12,10 @@
 #
 # Timer callback: clock_timer_callback
 
+
 from machine import Pin, SPI, Timer, RTC
 import network, time, ntptime
+
 
 _NOOP = const(0x0)
 _DIGIT0 = const(0x3)
@@ -65,17 +67,17 @@ _HEX_TO_SEG = { 0x0: 0b1111110, 0x1: 0b0110000, 0x2: 0b1101101, 0x3: 0b1111001, 
 class WifiClock:
     def __init__(self):
 
-        # initalize spi
+        # Initialize SPI
         self.spi = SPI(-1, baudrate=10000000, polarity=1, phase=0, sck=Pin(_SPI_CLK_PIN), mosi=Pin(_SPI_MOSI_PIN), miso=Pin(_SPI_MISO_PIN))
         self.cs = Pin(_SPI_CS_PIN)
         self.cs.init(self.cs.OUT, True)
 
-        # initialize leds
+        # Initialize LEDs
         self.red_led = Pin(_RED_LED_PIN, Pin.OUT)
         self.green_led = Pin(_GREEN_LED_PIN, Pin.OUT)
         self.blue_led = Pin(_BLUE_LED_PIN, Pin.OUT)
 
-        # initialize buttons with interrupts
+        # Initialize buttons with interrupts
         self.mode_button = Pin(_MODE_BUTTON_PIN, Pin.IN, Pin.PULL_UP)
         self.mode_button.irq(trigger=Pin.IRQ_FALLING, handler=self.mode_button_callback)
         self.incr_button = Pin(_INCR_BUTTON_PIN, Pin.IN, Pin.PULL_UP)
@@ -83,20 +85,15 @@ class WifiClock:
         self.decr_button = Pin(_DECR_BUTTON_PIN, Pin.IN, Pin.PULL_UP)
         self.decr_button.irq(trigger=Pin.IRQ_FALLING, handler=self.decr_button_callback)
 
-        # initialize current number
+        # Initialize current number and current decimal points
         self.current_num = None
         self.current_dp = 0b000000
 
-        # initialize timer and rtc
+        # Initialize timer and rtc
         self.sta_if = network.WLAN(network.STA_IF)
         self.rtc = RTC()
         self.timer = Timer(1)
 
-        self.init()
-
-
-    # Initialize the wificlock
-    def init(self):
         for command, data in (
             (_SHUTDOWN, 0),	# Turn display off
             (_SCANLIMIT, 7),	# Display all 7 digits
@@ -122,7 +119,7 @@ class WifiClock:
         if not self.sta_if.isconnected():
             print('Connecting to network...')
             self.sta_if.active(True)
-            self.ta_if.connect(ssid, password)
+            self.sta_if.connect(ssid, password)
             while not self.sta_if.isconnected():
                 print('.', end='')
                 time.sleep(1)
@@ -136,7 +133,7 @@ class WifiClock:
 
     # Set time using ntp server (must be connected to wifi)
     def set_time_ntp(self, utc_offset):
-        ntptime.settime();
+        ntptime.settime()
         d = self.rtc.datetime()
 
         hour = d[4] + utc_offset
@@ -175,6 +172,7 @@ class WifiClock:
     # Write a decimal value to the display, dp is 6 bit binary value representing where to put decimal points
     def write_num(self, value, dp=0b000000):
         self.register(_DECODEMODE, 0xFF)
+
         if (0 <= value <= _MAX_VALUE_DEC) and (0b000000 <= dp <= 0b111111):
             self.current_num = value
             self.current_dp = dp
@@ -190,6 +188,8 @@ class WifiClock:
 
                 dp = dp >> 1
                 value = value // 10
+                :w
+
         elif (0 > value >= _MIN_VALUE_DEC) and (0b000000 <= dp <= 0b111111):
             self.current_num = value
             self.current_dp = dp
@@ -209,6 +209,7 @@ class WifiClock:
                 dp = dp >> 1
 
                 value = value // 10
+
         else:
             raise ValueError("Value out of range")
 
