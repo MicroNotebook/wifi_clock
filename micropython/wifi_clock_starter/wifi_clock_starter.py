@@ -17,14 +17,14 @@ from machine import Pin, SPI, Timer, RTC
 import network, time, ntptime
 
 
-_NOOP = const(0x0)
-_DIGIT0 = const(0x3)
-_DIGIT1 = const(0x2)
-_DIGIT2 = const(0x1)
-_DIGIT3 = const(0x6)
-_DIGIT4 = const(0x5)
-_DIGIT5 = const(0x4)
-_DECODEMODE = const(0x9)
+_NOOP = 0x0
+_DIGIT0 = 0x3
+_DIGIT1 = 0x2
+_DIGIT2 = 0x1
+_DIGIT3 = 0x6
+_DIGIT4 = 0x5
+_DIGIT5 = 0x4
+_DECODE_MODE = 0x9
 
 _DIGIT_DICT = {
     0: _DIGIT0,
@@ -56,21 +56,21 @@ _MAX_VALUE_HEX = 0xFFFFFF
 
 _DEBOUNCE_SAMPLES = 32
 
-_INTENSITY = const(0xA)		# (0 = lowest intensity, 0xF = max intensity)
-_SCANLIMIT = const(0xB)		# (0 = display digit 0 only, 7 = display all 7 digits)
-_SHUTDOWN = const(0xC)		# (0 = shutdown, 1 = normal operation)
-_DISPLAYTEST = const(0xF)	# (0 = normal mode, 1 = test mode)
+_INTENSITY = 0xA
+_SCAN_LIMIT = 0xB
+_SHUTDOWN = 0xC
+_DISPLAY_TEST = 0xF
 
-_HEX_TO_SEG = { 0x0: 0b1111110, 0x1: 0b0110000, 0x2: 0b1101101, 0x3: 0b1111001, 0x4: 0b0110011, 0x5: 0b1011011, 0x6: 0b1011111, 0x7: 0b1110000, 0x8: 0b1111111, 0x9: 0b1111011, 0xA: 0b1110111, 0xB: 0b0011111, 0xC: 0b1001110, 0xD: 0b0111101, 0xE: 0b1001111, 0xF: 0b1000111,}
+_HEX_TO_SEG = {0x0: 0b1111110, 0x1: 0b0110000, 0x2: 0b1101101, 0x3: 0b1111001, 0x4: 0b0110011, 0x5: 0b1011011, 0x6: 0b1011111, 0x7: 0b1110000, 0x8: 0b1111111, 0x9: 0b1111011, 0xA: 0b1110111, 0xB: 0b0011111, 0xC: 0b1001110, 0xD: 0b0111101, 0xE: 0b1001111, 0xF: 0b1000111,}
 
 
 class WifiClock:
     def __init__(self):
 
         # Initialize SPI
-        self.spi = SPI(-1, baudrate=10000000, polarity=1, phase=0, sck=Pin(_SPI_CLK_PIN), mosi=Pin(_SPI_MOSI_PIN), miso=Pin(_SPI_MISO_PIN))
-        self.cs = Pin(_SPI_CS_PIN)
-        self.cs.init(self.cs.OUT, True)
+        self._spi = SPI(-1, baudrate=10000000, polarity=1, phase=0, sck=Pin(_SPI_CLK_PIN), mosi=Pin(_SPI_MOSI_PIN), miso=Pin(_SPI_MISO_PIN))
+        self._cs = Pin(_SPI_CS_PIN)
+        self._cs.init(self._cs.OUT, True)
 
         # Initialize LEDs
         self.red_led = Pin(_RED_LED_PIN, Pin.OUT)
@@ -95,24 +95,18 @@ class WifiClock:
         self.timer = Timer(1)
 
         for command, data in (
-            (_SHUTDOWN, 0),	# Turn display off
-            (_SCANLIMIT, 7),	# Display all 7 digits
-            (_DECODEMODE, 0xFF),# Decode all digits
-            (_INTENSITY, 0xa),	# Set brightness to 10
-            (_SHUTDOWN, 1),	# Turn display on
+            (_SHUTDOWN, 0),
+            (_SCAN_LIMIT, 7),
+            (_DECODE_MODE, 0xFF),
+            (_INTENSITY, 0xa),
+            (_SHUTDOWN, 1),
         ):
-            self.register(command, data)
+            self._register(command, data)
 
         self.write_num(000000)
         self.red_led.value(0)
         self.green_led.value(0)
         self.blue_led.value(0)
-
-
-    # Start a 24 hour clock (call after setting the time either with set_time or set_time_ntp)
-    def start_clock24(self):
-        self.timer.init(period=1000, mode=Timer.PERIODIC, callback=self.clock_timer_callback)
-
 
     # Connect to wifi
     def connect_to_wifi(self, ssid, password):
@@ -125,11 +119,9 @@ class WifiClock:
                 time.sleep(1)
         print('Connected!')
 
-
     # Set time manually
     def set_time(self, hour, minute, second):
         self.rtc.datetime((2019, 1, 1, 0, hour, minute, second, 0))
-
 
     # Set time using ntp server (must be connected to wifi)
     def set_time_ntp(self, utc_offset):
@@ -146,32 +138,26 @@ class WifiClock:
         d = (d[0], d[1], d[2], d[3], hour, d[5], d[6], d[7]) 
         self.rtc.datetime(d)
 
-
-    # Send commands to MAX7219
-    def register(self, command, data):
-        self.cs.value(0)
-        self.spi.write(bytearray([command, data]))
-        self.cs.value(1)
+    # Start a 24 hour clock (call after setting the time either with set_time or set_time_ntp)
+    def start_clock24(self):
+        self.timer.init(period=1000, mode=Timer.PERIODIC, callback=self.clock_timer_callback)
     
-
     # Set the display brightness
     def display_brightness(self, value):
         if 0 <= value <= 15:
-            self.register(_INTENSITY, value)
+            self._register(_INTENSITY, value)
         else:
             raise ValueError("Brightness out of range")
 
-
     # Clear the display
     def display_clear(self):
-        self.register(_DECODEMODE, 0xFF)
+        self._register(_DECODE_MODE, 0xFF)
         for i in range(6):
-            self.register(_DIGIT_DICT[i], 0x0)
-
+            self._register(_DIGIT_DICT[i], 0x0)
 
     # Write a decimal value to the display, dp is 6 bit binary value representing where to put decimal points
     def write_num(self, value, dp=0b000000):
-        self.register(_DECODEMODE, 0xFF)
+        self._register(_DECODE_MODE, 0xFF)
 
         if (0 <= value <= _MAX_VALUE_DEC) and (0b000000 <= dp <= 0b111111):
             self.current_num = value
@@ -182,9 +168,9 @@ class WifiClock:
 
                 if dp & 1:
                     
-                    self.register(_DIGIT_DICT[i], current_value | _DP )
+                    self._register(_DIGIT_DICT[i], current_value | _DP )
                 else:
-                    self.register(_DIGIT_DICT[i], current_value)
+                    self._register(_DIGIT_DICT[i], current_value)
 
                 dp = dp >> 1
                 value = value // 10
@@ -194,16 +180,16 @@ class WifiClock:
             self.current_dp = dp
 
             value = -value
-            self.register(_DIGIT5, 0xA)
+            self._register(_DIGIT5, 0xA)
 
             for i in range(5):
                 current_value = value % 10
 
                 if dp & 1:
                     
-                    self.register(_DIGIT_DICT[i], current_value | _DP )
+                    self._register(_DIGIT_DICT[i], current_value | _DP )
                 else:
-                    self.register(_DIGIT_DICT[i], current_value)
+                    self._register(_DIGIT_DICT[i], current_value)
 
                 dp = dp >> 1
                 value = value // 10
@@ -211,64 +197,58 @@ class WifiClock:
         else:
             raise ValueError("Value out of range")
 
-
     # Write literal hex value to the display
     def write_hex(self, value):
-        self.register(_DECODEMODE, 0x0)
-        if (0x0 <= value <= _MAX_VALUE_HEX):
+        self._register(_DECODE_MODE, 0x0)
+        if 0x0 <= value <= _MAX_VALUE_HEX:
+
+            self.current_num = value
+
             for i in range(6):
-                self.register(_DIGIT_DICT[i], _HEX_TO_SEG[value % 16])
+                self._register(_DIGIT_DICT[i], _HEX_TO_SEG[value % 16])
                 value = value // 16
         else:
             raise ValueError("Value out of range")
 
+    # Toggle an LED
+    @staticmethod
+    def toggle_led(led):
+        led.value(not (led.value()))
+
+    # Increment the current number on the display
+    def increment_num(self):
+        if (self.current_num + 1) > _MAX_VALUE_DEC:
+            self.current_num = -1
+        self.write_num(self.current_num + 1, self.current_dp)
+
+    # Decrement the current number on the display
+    def decrement_num(self):
+        if (self.current_num - 1) < _MIN_VALUE_DEC:
+            self.current_num = 1
+        self.write_num(self.current_num - 1, self.current_dp)
 
     # Callback for Mode button
     def mode_button_callback(self, pin):
         if self._debounce(self.mode_button):
             self.toggle_led(self.red_led)
 
-
     # Callback for Incr Button
     def incr_button_callback(self, pin):
         if self._debounce(self.incr_button):
             self.increment_num()
-
 
     # Callback for Decr button
     def decr_button_callback(self, pin):
         if self._debounce(self.decr_button):
             self.decrement_num()
     
-
     # Callback for clock after calling start_clock24
-    def clock_timer_callback(self, val):
+    def clock_timer_callback(self, tim):
         self._update_clock24()
-
 
     # Callback for other timer uses
     def timer_callback(self, tim):
         self.increment_num()
-
-
-    # Toggle an LED
-    def toggle_led(self, led):
-        led.value(not (led.value()))
-
-
-    # Increment the current number on the display
-    def increment_num(self):
-        if (self.current_num + 1) > _MAX_VALUE_DEC:
-            self.current_num = 0
-        self.write_num(self.current_num + 1, self.current_dp)
-
-
-    # Decrement the current number on the display
-    def decrement_num(self):
-        if (self.current_num - 1) < _MIN_VALUE_DEC:
-            self.current_num = 0
-        self.write_num(self.current_num - 1, self.current_dp)
-
 
     # Read hours, minutes, and seconds from rtc and and write to the display
     def _update_clock24(self):
@@ -294,9 +274,15 @@ class WifiClock:
 
         self.write_num(int(time_str), 0b010100)
 
+    # Send commands to MAX7219
+    def _register(self, command, data):
+        self._cs.value(0)
+        self._spi.write(bytearray([command, data]))
+        self._cs.value(1)
 
     # Debounce function for debouncing buttons
-    def _debounce(self, button):
+    @staticmethod
+    def _debounce(button):
         flag = 0
 
         for i in range(_DEBOUNCE_SAMPLES):
