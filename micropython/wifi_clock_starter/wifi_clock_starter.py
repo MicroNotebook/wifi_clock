@@ -12,10 +12,10 @@
 #
 # Timer callback: clock_timer_callback
 
-
 from machine import Pin, SPI, Timer, RTC
-import network, time, ntptime
-
+import network
+import time
+import ntptime
 
 _NOOP = 0x0
 _DIGIT0 = 0x3
@@ -53,6 +53,9 @@ _SPI_CS_PIN = 4
 _MAX_VALUE_DEC = 999999
 _MIN_VALUE_DEC = -99999
 _MAX_VALUE_HEX = 0xFFFFFF
+_MIN_VALUE_HEX = 0x000000
+_MAX_VALUE_DP = 0b111111
+_MIN_VALUE_DP = 0b000000
 
 _DEBOUNCE_SAMPLES = 32
 
@@ -61,7 +64,24 @@ _SCAN_LIMIT = 0xB
 _SHUTDOWN = 0xC
 _DISPLAY_TEST = 0xF
 
-_HEX_TO_SEG = {0x0: 0b1111110, 0x1: 0b0110000, 0x2: 0b1101101, 0x3: 0b1111001, 0x4: 0b0110011, 0x5: 0b1011011, 0x6: 0b1011111, 0x7: 0b1110000, 0x8: 0b1111111, 0x9: 0b1111011, 0xA: 0b1110111, 0xB: 0b0011111, 0xC: 0b1001110, 0xD: 0b0111101, 0xE: 0b1001111, 0xF: 0b1000111,}
+_HEX_TO_SEG = {
+    0x0: 0b1111110,
+    0x1: 0b0110000,
+    0x2: 0b1101101,
+    0x3: 0b1111001,
+    0x4: 0b0110011,
+    0x5: 0b1011011,
+    0x6: 0b1011111,
+    0x7: 0b1110000,
+    0x8: 0b1111111,
+    0x9: 0b1111011,
+    0xA: 0b1110111,
+    0xB: 0b0011111,
+    0xC: 0b1001110,
+    0xD: 0b0111101,
+    0xE: 0b1001111,
+    0xF: 0b1000111,
+}
 
 
 class WifiClock:
@@ -103,7 +123,7 @@ class WifiClock:
         ):
             self._register(command, data)
 
-        self.write_num(000000)
+        self.display_clear()
         self.red_led.value(0)
         self.green_led.value(0)
         self.blue_led.value(0)
@@ -153,13 +173,15 @@ class WifiClock:
     def display_clear(self):
         self._register(_DECODE_MODE, 0xFF)
         for i in range(6):
-            self._register(_DIGIT_DICT[i], 0x0)
+            self._register(_DIGIT_DICT[i], 0x0F)
+
+        self.current_num = None;
 
     # Write a decimal value to the display, dp is 6 bit binary value representing where to put decimal points
     def write_num(self, value, dp=0b000000):
         self._register(_DECODE_MODE, 0xFF)
 
-        if (0 <= value <= _MAX_VALUE_DEC) and (0b000000 <= dp <= 0b111111):
+        if (0 <= value <= _MAX_VALUE_DEC) and (_MIN_VALUE_DP <= dp <= _MAX_VALUE_DP):
             self.current_num = value
             self.current_dp = dp
 
@@ -168,14 +190,14 @@ class WifiClock:
 
                 if dp & 1:
                     
-                    self._register(_DIGIT_DICT[i], current_value | _DP )
+                    self._register(_DIGIT_DICT[i], current_value | _DP)
                 else:
                     self._register(_DIGIT_DICT[i], current_value)
 
                 dp = dp >> 1
                 value = value // 10
 
-        elif (0 > value >= _MIN_VALUE_DEC) and (0b000000 <= dp <= 0b111111):
+        elif (0 > value >= _MIN_VALUE_DEC) and (_MIN_VALUE_DP <= dp <= _MAX_VALUE_DP):
             self.current_num = value
             self.current_dp = dp
 
@@ -187,7 +209,7 @@ class WifiClock:
 
                 if dp & 1:
                     
-                    self._register(_DIGIT_DICT[i], current_value | _DP )
+                    self._register(_DIGIT_DICT[i], current_value | _DP)
                 else:
                     self._register(_DIGIT_DICT[i], current_value)
 
@@ -216,16 +238,40 @@ class WifiClock:
         led.value(not (led.value()))
 
     # Increment the current number on the display
-    def increment_num(self):
-        if (self.current_num + 1) > _MAX_VALUE_DEC:
-            self.current_num = -1
-        self.write_num(self.current_num + 1, self.current_dp)
+    def increment_num(self, hex=False):
+        if self.current_num is None:
+            raise ValueError("No value to increment")
+        else:
+
+            if hex:
+                if (self.current_num + 1) > _MAX_VALUE_HEX:
+                    self.current_num = -1
+
+                self.write_hex(self.current_num + 1)
+            else:
+
+                if (self.current_num + 1) > _MAX_VALUE_DEC:
+                    self.current_num = -1
+
+                self.write_num(self.current_num + 1, self.current_dp)
 
     # Decrement the current number on the display
-    def decrement_num(self):
-        if (self.current_num - 1) < _MIN_VALUE_DEC:
-            self.current_num = 1
-        self.write_num(self.current_num - 1, self.current_dp)
+    def decrement_num(self, hex=False):
+        if self.current_num is None:
+            raise ValueError("No value to decrement")
+        else:
+
+            if hex:
+                if (self.current_num - 1) < _MIN_VALUE_HEX:
+                    self.current_num = 1
+
+                self.write_hex(self.current_num - 1)
+            else:
+
+                if (self.current_num - 1) < _MIN_VALUE_DEC:
+                    self.current_num = 1
+
+                self.write_num(self.current_num - 1, self.current_dp)
 
     # Callback for Mode button
     def mode_button_callback(self, pin):
