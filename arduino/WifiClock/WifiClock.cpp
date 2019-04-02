@@ -8,13 +8,13 @@ WifiClock::WifiClock(void)
   pinMode(GLED, OUTPUT);
   pinMode(BLED, OUTPUT);
   
+  // Initialize beeper
+  //pinMode(BEEPER, OUTPUT);
+  
   // Initialize buttons with interrupts
   pinMode(MODE, INPUT_PULLUP);
   pinMode(INCR, INPUT_PULLUP);
   pinMode(DECR, INPUT_PULLUP);
-  //attachInterrupt(digitalPinToInterrupt(MODE), mode_button_callback, FALLING);
-  //attachInterrupt(digitalPinToInterrupt(INCR), incr_button_callback, FALLING);
-  //attachInterrupt(digitalPinToInterrupt(DECR), decr_button_callback, FALLING);
 
   // Initialize current number and current decimal points
   
@@ -30,6 +30,16 @@ WifiClock::WifiClock(void)
   digitalWrite(GLED, LOW);
   digitalWrite(BLED, LOW);
 }
+
+void WifiClock::attach_interrupt(int button, void (*func)(void), int mode)
+{
+	if (button != MODE && button != INCR && button != DECR)
+		return;
+	if (mode != LOW && mode != CHANGE && mode != RISING && mode != FALLING && mode != HIGH)
+		return;
+	attachInterrupt(digitalPinToInterrupt(button), func, mode);
+}
+
 /*
 void WifiClock::connect_to_wifi(char* ssid, char* password)
 {
@@ -198,6 +208,53 @@ void WifiClock::toggle_led(int led)
 {
 	digitalWrite(led, !digitalRead(led));
 }
+
+void WifiClock::set_led(int led)
+{
+	digitalWrite(led, HIGH);
+}
+
+void WifiClock::set_led(int led1, int led2)
+{
+	digitalWrite(led1, HIGH);
+	digitalWrite(led2, HIGH);
+}
+
+void WifiClock::set_led(int led1, int led2, int led3)
+{
+	digitalWrite(led1, HIGH);
+	digitalWrite(led2, HIGH);
+	digitalWrite(led3, HIGH);
+}
+
+void WifiClock::clear_led(int led)
+{
+	digitalWrite(led, LOW);
+}
+
+void WifiClock::clear_led(int led1, int led2)
+{
+	digitalWrite(led1, LOW);
+	digitalWrite(led2, LOW);
+}
+
+void WifiClock::clear_led(int led1, int led2, int led3)
+{
+	digitalWrite(led1, LOW);
+	digitalWrite(led2, LOW);
+	digitalWrite(led3, LOW);
+}
+
+void WifiClock::copy_state(int button, int led)
+{
+	digitalWrite(led, !digitalRead(button));
+}
+
+int WifiClock::get_button(int button)
+{
+	return !digitalRead(button);
+}
+
 /*
 void WifiClock::increment_num(void)
 {
@@ -238,12 +295,12 @@ void WifiClock::clock_timer_callback(void)
 {
 	
 }
-
-void WifiClock::timer_callback(void)
+*/
+void WifiClock::timer_callback(void (*func)(void), float period)
 {
-	
+	_timer.attach(period, func);
 }
-
+/*
 void WifiClock::_update_clock24(void)
 {
 	
