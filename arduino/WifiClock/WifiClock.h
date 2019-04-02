@@ -30,7 +30,6 @@ class WifiClock
 {
   public:
     WifiClock(void);
-	void attach_interrupt(int button, void (*func)(void), int mode);
     /*void connect_to_wifi(char* ssid, char* password);
     void set_time(int hour, int minute, int second);
     void set_time_ntp(int utc_offset);
@@ -54,11 +53,11 @@ class WifiClock
     /*void increment_num(void);
     void increment_num(byte hex);
     void decrement_num(void);
-    void decrement_num(byte hex);
-    void mode_button_callback(void);
-    void incr_button_callback(void);
-    void decr_button_callback(void);
-    void clock_timer_callback(void);*/
+    void decrement_num(byte hex);*/
+    void mode_button_callback(void (*func)(void), int mode);
+    void incr_button_callback(void (*func)(void), int mode);
+    void decr_button_callback(void (*func)(void), int mode);
+    //void clock_timer_callback(void);
     void timer_callback(void (*func)(void), float period);
   private:
     const int _digits[6] = {DIG0, DIG1, DIG2, DIG3, DIG4, DIG5};

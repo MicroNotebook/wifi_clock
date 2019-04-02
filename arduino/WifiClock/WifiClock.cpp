@@ -31,15 +31,6 @@ WifiClock::WifiClock(void)
   digitalWrite(BLED, LOW);
 }
 
-void WifiClock::attach_interrupt(int button, void (*func)(void), int mode)
-{
-	if (button != MODE && button != INCR && button != DECR)
-		return;
-	if (mode != LOW && mode != CHANGE && mode != RISING && mode != FALLING && mode != HIGH)
-		return;
-	attachInterrupt(digitalPinToInterrupt(button), func, mode);
-}
-
 /*
 void WifiClock::connect_to_wifi(char* ssid, char* password)
 {
@@ -275,22 +266,28 @@ void WifiClock::decrement_num(byte hex)
 {
 	
 }
-
-void WifiClock::mode_button_callback(void)
+*/
+void WifiClock::mode_button_callback(void (*func)(void), int mode)
 {
-	
+	if (mode != LOW && mode != CHANGE && mode != RISING && mode != FALLING && mode != HIGH)
+		return;
+	attachInterrupt(digitalPinToInterrupt(MODE), func, mode);
 }
 
-void WifiClock::incr_button_callback(void)
+void WifiClock::incr_button_callback(void (*func)(void), int mode)
 {
-	
+	if (mode != LOW && mode != CHANGE && mode != RISING && mode != FALLING && mode != HIGH)
+		return;
+	attachInterrupt(digitalPinToInterrupt(INCR), func, mode);
 }
 
-void WifiClock::decr_button_callback(void)
+void WifiClock::decr_button_callback(void (*func)(void), int mode)
 {
-	
+	if (mode != LOW && mode != CHANGE && mode != RISING && mode != FALLING && mode != HIGH)
+		return;
+	attachInterrupt(digitalPinToInterrupt(DECR), func, mode);
 }
-
+/*
 void WifiClock::clock_timer_callback(void)
 {
 	
