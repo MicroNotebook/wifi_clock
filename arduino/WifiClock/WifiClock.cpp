@@ -1,6 +1,14 @@
 #include "Arduino.h"
 #include "WifiClock.h"
 
+volatile byte _currPlay = 0;
+
+void _play(void)
+{
+  _currPlay = !_currPlay;
+  digitalWrite(BEEPER, _currPlay);
+}
+
 WifiClock::WifiClock(void)
 {  
   // Initialize LEDs
@@ -9,7 +17,8 @@ WifiClock::WifiClock(void)
   pinMode(BLED, OUTPUT);
   
   // Initialize beeper
-  //pinMode(BEEPER, OUTPUT);
+  pinMode(BEEPER, OUTPUT);
+  digitalWrite(BEEPER, HIGH);
   
   // Initialize buttons with interrupts
   pinMode(MODE, INPUT_PULLUP);
@@ -246,6 +255,20 @@ int WifiClock::get_button(int button)
 	return !digitalRead(button);
 }
 
+void WifiClock::play_note(float frequency)
+{
+  timer1_detachInterrupt();
+  timer1_attachInterrupt(_play);
+  timer1_enable(TIM_DIV16, TIM_EDGE, TIM_LOOP);
+  timer1_write(2500000 / frequency);
+}
+
+void WifiClock::stop_note(void)
+{
+  timer1_disable();
+  digitalWrite(BEEPER, HIGH);
+}
+
 /*
 void WifiClock::increment_num(void)
 {
@@ -293,7 +316,7 @@ void WifiClock::clock_timer_callback(void)
 	
 }
 */
-void WifiClock::timer_callback(void (*func)(void), float period)
+void WifiClock::timer_callback(float period, void (*func)(void))
 {
 	_timer.attach(period, func);
 }
