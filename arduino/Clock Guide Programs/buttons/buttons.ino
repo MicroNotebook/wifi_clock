@@ -1,10 +1,10 @@
-const int MODE = 14;
-const int RLED = 12;
+const int MODE = 9;
+const int RLED = 0;
 //Bonus
-const int INCR = 2;
-const int DECR = 0;
-const int GLED = 13;
-const int BLED = 15;
+const int INCR = 10;
+const int DECR = 2;
+const int GLED = 4;
+const int BLED = 5;
 
 void setup() {
   pinMode(RLED, OUTPUT);
