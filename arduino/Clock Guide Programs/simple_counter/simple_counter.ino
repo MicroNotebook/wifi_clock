@@ -33,7 +33,7 @@ void write_num(int n)
   lc.setDigit(0, 1, secTens, false);
   lc.setDigit(0, 2, minOnes, false);
   lc.setDigit(0, 3, minTens, false);
-}/*
+}*/
 
 void loop() {
   for (int i = 0; i < 60; i++) {
