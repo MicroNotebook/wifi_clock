@@ -3,7 +3,7 @@
 #define DIN 13
 #define CLK 14
 #define LOAD 15
-#define MODE 12
+#define MODE 9
 #define INCR 10
 #define DECR 2
 #define RLED 0
@@ -12,49 +12,22 @@
 
 LedControl lc = LedControl(DIN, CLK, LOAD, 1);
 
-// Bonus
-//int i;
-
 void ICACHE_RAM_ATTR mode_callback(void)
 {
   int state = !digitalRead(MODE);
   digitalWrite(RLED, state);
-  
-  // Bonus
-  /*if (state == HIGH) {
-    lc.setDigit(0, 5, 1, false);
-  } else {
-    lc.clearDisplay(0);
-    write_num(i);
-  }*/
 }
 
 void ICACHE_RAM_ATTR incr_callback(void)
 {
   int state = !digitalRead(INCR);
   digitalWrite(GLED, state);
-  
-  // Bonus
-  /*if (state == HIGH) {
-    lc.setDigit(0, 4, 2, false);
-  } else {
-    lc.clearDisplay(0);
-    write_num(i);
-  }*/
 }
 
 void ICACHE_RAM_ATTR decr_callback(void)
 {
   int state = !digitalRead(DECR);
   digitalWrite(BLED, state);
-  
-  // Bonus
-  /*if (state == HIGH) {
-    lc.setDigit(0, 3, 3, false);
-  } else {
-    lc.clearDisplay(0);
-    write_num(i);
-  }*/
 }
 
 void setup() {
@@ -88,10 +61,7 @@ void write_num(int n)
   lc.setDigit(0, 1, tens, false);
 }
 
-void loop() {
-  // Bonus
-  //for (int i = 0; i < 60; i++) {
-  
+void loop() {  
   for (int i = 0; i < 60; i++) {
     write_num(i);
     delay(1000);
