@@ -42,7 +42,7 @@
 #define NOTE_A3		220.0
 #define NOTE_AS3	233.1
 #define NOTE_BF3	233.1
-#define NOTE_B43	246.9
+#define NOTE_B3		246.9
 
 #define NOTE_C4		261.6
 #define NOTE_CS4	277.2
@@ -78,7 +78,7 @@
 #define NOTE_A5		880.0
 #define NOTE_AS5	932.3
 #define NOTE_BF5	932.3
-#define NOTE_B45	987.8
+#define NOTE_B5		987.8
 
 class WifiClock
 {
