@@ -15,6 +15,9 @@ WifiClock::WifiClock(void)
   pinMode(RLED, OUTPUT);
   pinMode(GLED, OUTPUT);
   pinMode(BLED, OUTPUT);
+  digitalWrite(RLED, LOW);
+  digitalWrite(GLED, LOW);
+  digitalWrite(BLED, LOW);
   
   // Initialize beeper
   pinMode(BEEPER, OUTPUT);
@@ -33,11 +36,6 @@ WifiClock::WifiClock(void)
   _lc.shutdown(0, false);
   _lc.setIntensity(0, 8);
   _lc.clearDisplay(0);
-  
-  // Set all LEDs to 0
-  digitalWrite(RLED, LOW);
-  digitalWrite(GLED, LOW);
-  digitalWrite(BLED, LOW);
 }
 
 /*
