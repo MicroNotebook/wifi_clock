@@ -80,9 +80,16 @@
 #define NOTE_BF5	932.3
 #define NOTE_B5		987.8
 
+#define MAX_INT		999999
+#define MIN_INT		-99999
+#define MAX_HEX		0xFFFFFF
+#define MIN_HEX		0x000000
+#define MAX_FLOAT	999999.0
+#define MIN_FLOAT	-99999.0
+
 class WifiClock
-{
-  public:
+{	
+  public:  
     WifiClock(void);
     /*void connect_to_wifi(char* ssid, char* password);
     void set_time(int hour, int minute, int second);
@@ -90,41 +97,50 @@ class WifiClock
     void start_clock24(void);*/
     void display_brightness(int value);
     void display_clear(void);
-    void write_num(int value);
-	void write_num(float value);
-    void write_num(int value, byte dp);
-	void write_num_f(int value, byte dp, bool right, bool zeros);
-    void write_hex(int value);
-    void toggle_led(int led);
-	void set_led(int led);
-	void set_led(int led1, int led2);
-	void set_led(int led1, int led2, int led3);
-	void clear_led(int led);
-	void clear_led(int led1, int led2);
-	void clear_led(int led1, int led2, int led3);
+	void write_num(double value);
+    void write_num(int value, byte dp=0, bool right=true, bool zeros=true);
+    void write_hex(unsigned int value);
+	void write_digit(int digit, int value);
+	void write_led(int digit, int led, bool state);
+    void toggle_led(int led1, int led2=-1, int led3=-1);
+	void set_led(int led1, int led2=-1, int led3=-1);
+	void clear_led(int led1, int led2=-1, int led3=-1);
 	void copy_state(int button, int led);
 	int  get_button(int button);
 	void play_note(float frequency);
 	void stop_note(void);
-    /*void increment_num(void);
-    void increment_num(byte hex);
-    void decrement_num(void);
-    void decrement_num(byte hex);*/
+    void increment_num(int val);
+	void increment_num(double val);
+    void decrement_num(int val);
+	void decrement_num(double val);
     void mode_button_callback(void (*func)(void), int mode);
     void incr_button_callback(void (*func)(void), int mode);
     void decr_button_callback(void (*func)(void), int mode);
-    //void clock_timer_callback(void);
+    //void clock_timer_callback(void (*func)(void));
     void timer_callback(float period, void (*func)(void));
 	
   private:
     const int _digits[6] = {DIG0, DIG1, DIG2, DIG3, DIG4, DIG5};
-    const char _hex[16] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
 	LedControl _lc = LedControl(DIN, CLK, LOAD, 1);					// Initialize MAX7219
 	Ticker _timer;													// Initialize timer
+	//Ticker _clockTimer;											// Initialize a timer for the clock
+	byte _curr_type = 0;											// 0: nothing
+																	// 1: int
+																	// 2: hex
+																	// 3: float
+	int _curr_int = 0;
+	unsigned int _curr_hex = 0x0;
+	double _curr_float = 0.0;
+	byte _curr_dp = 0x0;
+	bool _curr_right = true;
+	bool _curr_zeros = true;
 	
 	int _count(int n);
-	byte _place_decimal(float f);
-	int _get6(float f);
+	byte _place_decimal(double f);
+	int _getDig(double f, int ub);
+	bool _check_int(int val, bool add);
+	bool _check_hex(unsigned int val, bool add);
+	bool _check_float(double val, bool add);
 	
 	/*void _update_clock24(void);
     byte _debounce(int button);*/
