@@ -87,43 +87,67 @@
 #define MAX_FLOAT	999999.0
 #define MIN_FLOAT	-99999.0
 
+#define ACCURACY	64
+
 class WifiClock
 {	
-  public:  
+  public:
+	// Initializer
     WifiClock(void);
-    /*void connect_to_wifi(char* ssid, char* password);
-    void set_time(int hour, int minute, int second);
-    void set_time_ntp(int utc_offset);
-    void start_clock24(void);*/
+	
+	// Display Control Functions
     void display_brightness(int value);
     void display_clear(void);
-	void write_num(double value);
-    void write_num(int value, byte dp=0, bool right=true, bool zeros=true);
-    void write_hex(unsigned int value);
-	void write_digit(int digit, int value);
 	void write_led(int digit, int led, bool state);
-    void toggle_led(int led1, int led2=-1, int led3=-1);
-	void set_led(int led1, int led2=-1, int led3=-1);
-	void clear_led(int led1, int led2=-1, int led3=-1);
-	void copy_state(int button, int led);
-	int  get_button(int button);
-	void play_note(float frequency);
-	void stop_note(void);
+	void write_digit(int digit, int value);
+	
+	// Display Write Functions
+    void write_num(int value, byte dp=0, bool right=true, bool zeros=true);
+    void write_num(double value);
+	void write_hex(unsigned int value);
     void increment_num(int val);
 	void increment_num(double val);
     void decrement_num(int val);
 	void decrement_num(double val);
-    void mode_button_callback(void (*func)(void), int mode);
+	int get_curr_int(void);
+	unsigned int get_curr_hex(void);
+	double get_curr_float(void);
+	
+	// LED Functions
+	void write_led(int led, byte state);
+	void set_led(int led1, int led2=-1, int led3=-1);
+	void clear_led(int led1, int led2=-1, int led3=-1);
+	void toggle_led(int led1, int led2=-1, int led3=-1);
+	
+	
+	// Button Functions
+	int  get_button(int button);
+	void copy_state(int button, int led);
+	void mode_button_callback(void (*func)(void), int mode);
     void incr_button_callback(void (*func)(void), int mode);
     void decr_button_callback(void (*func)(void), int mode);
-    //void clock_timer_callback(void (*func)(void));
-    void timer_callback(float period, void (*func)(void));
+	byte debounce(int button);
+	
+	// Timer Functions
+	void timer_callback(float period, void (*func)(void));
+	
+	// Beeper Functions
+	void play_note(float frequency);
+	void stop_note(void);
+	
+	// Not Yet Implemented
+	/*void connect_to_wifi(char* ssid, char* password);
+    void set_time(int hour, int minute, int second);
+    void set_time_ntp(int utc_offset);
+    void start_clock24(void);*/
+	//void clock_timer_callback(void (*func)(void));
+	//void _update_clock24(void);
 	
   private:
     const int _digits[6] = {DIG0, DIG1, DIG2, DIG3, DIG4, DIG5};
 	LedControl _lc = LedControl(DIN, CLK, LOAD, 1);					// Initialize MAX7219
 	Ticker _timer;													// Initialize timer
-	//Ticker _clockTimer;											// Initialize a timer for the clock
+	//Clock _clock;													// Initialize a clock
 	byte _curr_type = 0;											// 0: nothing
 																	// 1: int
 																	// 2: hex
@@ -135,6 +159,7 @@ class WifiClock
 	bool _curr_right = true;
 	bool _curr_zeros = true;
 	
+	// Display Helper Functions
 	int _count(int n);
 	byte _place_decimal(double f);
 	int _getDig(double f, int ub);
@@ -142,8 +167,8 @@ class WifiClock
 	bool _check_hex(unsigned int val, bool add);
 	bool _check_float(double val, bool add);
 	
-	/*void _update_clock24(void);
-    byte _debounce(int button);*/
+	// Beeper Helper Functions
+	static void _play(void);
 };
 
 #endif

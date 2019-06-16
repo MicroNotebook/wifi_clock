@@ -3,12 +3,7 @@
 
 volatile byte _currPlay = 0;
 
-void _play(void)
-{
-  _currPlay = !_currPlay;
-  digitalWrite(BEEPER, _currPlay);
-}
-
+// Initializer
 WifiClock::WifiClock(void)
 {  
   // Initialize LEDs
@@ -38,27 +33,7 @@ WifiClock::WifiClock(void)
   _lc.clearDisplay(0);
 }
 
-/*
-void WifiClock::connect_to_wifi(char* ssid, char* password)
-{
-	
-}
-
-void WifiClock::set_time(int hour, int minute, int second)
-{
-	
-}
-
-void WifiClock::set_time_ntp(int utc_offset)
-{
-	
-}
-
-void WifiClock::start_clock24(void)
-{
-	
-}
-*/
+// Display Control Functions
 void WifiClock::display_brightness(int value)
 {
 	_lc.setIntensity(0, value);
@@ -70,58 +45,28 @@ void WifiClock::display_clear(void)
 	_curr_type = 0;
 }
 
-int WifiClock::_count(int n)
+/****************************************
+* This function turns on a single		*
+* led in the display.					*
+* The digit parameter is the display  	*
+* number you want to write to.			*
+* The led is the led you want to 		*
+* turn on. The decimal point is 0,		*
+* then 1 is segment a, and so on.		*
+****************************************/
+void WifiClock::write_led(int digit, int led, bool state)
 {
-	if (n == 0) {
-		return 1;
-	}
-	int nd = 0;
-	while (n > 0) {
-		n /= 10;
-		nd++;
-	}
-	return nd;
+	_lc.setLed(0, digit, led, state);
+	_curr_type = 0;
 }
 
-byte WifiClock::_place_decimal(double f)
+void WifiClock::write_digit(int digit, int value)
 {
-	int nd = _count((int)f);
-	byte dp = 32 >> (nd - 1);
-	return dp;
+	_lc.setDigit(0, _digits[digit], value, false);
+	_curr_type = 0;
 }
 
-int WifiClock::_getDig(double f, int ub)
-{
-	int nd = _count((int)f);
-	int ten = 1;
-	for (int i = 0; i < ub - nd; i++) {
-		ten *= 10;
-	}
-	return ten * f;
-}
-
-void WifiClock::write_num(double value)
-{	
-	int disp_val = 0;
-	double held = value;
-	byte dp = 0x0;
-	if (value >= 0.0 && value <= 999999.0) {
-		dp = _place_decimal(value);			// determine where to place decimal point
-		disp_val = _getDig(value, 6);		// get 6 significant digits
-	} else if (value < 0.0 && value >= -99999.0) {
-		value *= -1.0;
-		dp = _place_decimal(value) >> 1;	// determine where to place decimal point
-		disp_val = -1 * _getDig(value, 5);	// get 5 significant digits
-	} else {
-		return;
-	}
-	write_num(disp_val, dp, true, true);
-	
-	// save values
-	_curr_float = held;
-	_curr_type = 3;
-}
-
+// Display Write Functions
 void WifiClock::write_num(int value, byte dp, bool right, bool zeros)
 {
 	// save values
@@ -166,138 +111,40 @@ void WifiClock::write_num(int value, byte dp, bool right, bool zeros)
 	}
 }
 
+void WifiClock::write_num(double value)
+{	
+	int disp_val = 0;
+	double held = value;
+	byte dp = 0x0;
+	if (value >= 0.0 && value <= 999999.0) {
+		dp = _place_decimal(value);			// determine where to place decimal point
+		disp_val = _getDig(value, 6);		// get 6 significant digits
+	} else if (value < 0.0 && value >= -99999.0) {
+		value *= -1.0;
+		dp = _place_decimal(value) >> 1;	// determine where to place decimal point
+		disp_val = -1 * _getDig(value, 5);	// get 5 significant digits
+	} else {
+		return;
+	}
+	write_num(disp_val, dp, true, true);
+	
+	// save values
+	_curr_float = held;
+	_curr_type = 3;
+}
+
 void WifiClock::write_hex(unsigned int value)
 {
 	// save values
 	_curr_hex = value;
 	_curr_type = 2;
 	
+	// clear display
+	_lc.clearDisplay(0);
+	
 	for (int i = 0; i < 6; i++) {
 		_lc.setDigit(0, _digits[i], value % 16, false);
 		value >>= 4;
-	}
-}
-
-void WifiClock::write_digit(int digit, int value)
-{
-	_lc.setDigit(0, _digits[digit], value, false);
-	_curr_type = 0;
-}
-
-/****************************************
-* This function turns on a single		*
-* led in the display.					*
-* The digit parameter is the display  	*
-* number you want to write to.			*
-* The led is the led you want to 		*
-* turn on. The decimal point is 0,		*
-* then 1 is segment a, and so on.		*
-****************************************/
-void WifiClock::write_led(int digit, int led, bool state)
-{
-	_lc.setLed(0, digit, led, state);
-	_curr_type = 0;
-}
-
-void WifiClock::toggle_led(int led1, int led2, int led3)
-{
-	digitalWrite(led1, !digitalRead(led1));
-	if (led2 != -1) {
-		digitalWrite(led2, !digitalRead(led2));
-	}
-	if (led3 != -1) {
-		digitalWrite(led3, !digitalRead(led3));
-	}
-}
-
-void WifiClock::set_led(int led1, int led2, int led3)
-{
-	digitalWrite(led1, HIGH);
-	if (led2 != -1) {
-		digitalWrite(led2, HIGH);
-	}
-	if (led3 != -1) {
-		digitalWrite(led3, HIGH);
-	}
-}
-
-void WifiClock::clear_led(int led1, int led2, int led3)
-{
-	digitalWrite(led1, LOW);
-	if (led2 != -1) {
-		digitalWrite(led2, LOW);
-	}
-	if (led3 != -1) {
-		digitalWrite(led3, LOW);
-	}
-}
-
-void WifiClock::copy_state(int button, int led)
-{
-	digitalWrite(led, !digitalRead(button));
-}
-
-int WifiClock::get_button(int button)
-{
-	return !digitalRead(button);
-}
-
-void WifiClock::play_note(float frequency)
-{
-  timer1_detachInterrupt();
-  timer1_attachInterrupt(_play);
-  timer1_enable(TIM_DIV16, TIM_EDGE, TIM_LOOP);
-  timer1_write(2500000 / frequency);
-}
-
-void WifiClock::stop_note(void)
-{
-  timer1_disable();
-  digitalWrite(BEEPER, HIGH);
-}
-
-bool WifiClock::_check_int(int val, bool add)
-{
-	int new_val;
-	if (add) {	// if adding value to int
-		new_val = _curr_int + val;
-	} else {	// if subtracting value from int
-		new_val = _curr_int - val;
-	}
-	if (new_val <= MAX_INT && new_val >= MIN_INT) {
-		return true;
-	} else {
-		return false;
-	}
-}
-
-bool WifiClock::_check_hex(unsigned int val, bool add)
-{
-	unsigned int new_val;
-	if (add) {	// if adding value to hex
-		new_val = _curr_hex + val;
-	} else {	// if subtracting value from hex
-		new_val = _curr_hex - val;
-	}
-	if (new_val <= MAX_HEX && new_val >= MIN_HEX) {
-		return true;
-	} else {
-		return false;
-	}
-}
-
-bool WifiClock::_check_float(double val, bool add)
-{
-	double new_val;
-	if (add) {	// if adding value to double
-		new_val = _curr_float + val;
-	} else {	// if subtracting value from double
-		new_val = _curr_float - val;
-	}
-	if (new_val <= MAX_FLOAT && new_val >= MIN_FLOAT) {
-		return true;
-	} else {
-		return false;
 	}
 }
 
@@ -345,6 +192,154 @@ void WifiClock::decrement_num(double val)
 	}
 }
 
+int WifiClock::get_curr_int(void)
+{
+	return _curr_int;
+}
+
+unsigned int WifiClock::get_curr_hex(void)
+{
+	return _curr_hex;
+}
+
+double WifiClock::get_curr_float(void)
+{
+	return _curr_float;
+}
+
+// Display Helper Functions
+int WifiClock::_count(int n)
+{
+	if (n == 0) {
+		return 1;
+	}
+	int nd = 0;
+	while (n > 0) {
+		n /= 10;
+		nd++;
+	}
+	return nd;
+}
+
+byte WifiClock::_place_decimal(double f)
+{
+	int nd = _count((int)f);
+	byte dp = 32 >> (nd - 1);
+	return dp;
+}
+
+int WifiClock::_getDig(double f, int ub)
+{
+	int nd = _count((int)f);
+	int ten = 1;
+	for (int i = 0; i < ub - nd; i++) {
+		ten *= 10;
+	}
+	return ten * f;
+}
+
+bool WifiClock::_check_int(int val, bool add)
+{
+	int new_val;
+	if (add) {	// if adding value to int
+		new_val = _curr_int + val;
+	} else {	// if subtracting value from int
+		new_val = _curr_int - val;
+	}
+	if (new_val <= MAX_INT && new_val >= MIN_INT) {
+		return true;
+	} else {
+		return false;
+	}
+}
+
+bool WifiClock::_check_hex(unsigned int val, bool add)
+{
+	unsigned int new_val;
+	if (add) {	// if adding value to hex
+		new_val = _curr_hex + val;
+	} else {	// if subtracting value from hex
+		new_val = _curr_hex - val;
+	}
+	if (new_val <= MAX_HEX && new_val >= MIN_HEX) {
+		return true;
+	} else {
+		return false;
+	}
+}
+
+bool WifiClock::_check_float(double val, bool add)
+{
+	double new_val;
+	if (add) {	// if adding value to double
+		new_val = _curr_float + val;
+	} else {	// if subtracting value from double
+		new_val = _curr_float - val;
+	}
+	if (new_val <= MAX_FLOAT && new_val >= MIN_FLOAT) {
+		return true;
+	} else {
+		return false;
+	}
+}
+
+// LED Functions
+/********************************
+* This function is similar to	*
+* the other write_led function, *
+* however this one sets or 		*
+* clears the three LEDs on the 	*
+* right of the board.			*
+********************************/
+void WifiClock::write_led(int led, byte state)
+{
+	digitalWrite(led, state);
+}
+
+void WifiClock::set_led(int led1, int led2, int led3)
+{
+	digitalWrite(led1, HIGH);
+	if (led2 != -1) {
+		digitalWrite(led2, HIGH);
+	}
+	if (led3 != -1) {
+		digitalWrite(led3, HIGH);
+	}
+}
+
+void WifiClock::clear_led(int led1, int led2, int led3)
+{
+	digitalWrite(led1, LOW);
+	if (led2 != -1) {
+		digitalWrite(led2, LOW);
+	}
+	if (led3 != -1) {
+		digitalWrite(led3, LOW);
+	}
+}
+
+void WifiClock::toggle_led(int led1, int led2, int led3)
+{
+	digitalWrite(led1, !digitalRead(led1));
+	if (led2 != -1) {
+		digitalWrite(led2, !digitalRead(led2));
+	}
+	if (led3 != -1) {
+		digitalWrite(led3, !digitalRead(led3));
+	}
+}
+
+// Buttons Functions
+int WifiClock::get_button(int button)
+{
+	return !digitalRead(button);
+}
+
+void WifiClock::copy_state(int button, int led)
+{
+	digitalWrite(led, !digitalRead(button));
+}
+
 void WifiClock::mode_button_callback(void (*func)(void), int mode)
 {
 	if (mode != LOW && mode != CHANGE && mode != RISING && mode != FALLING && mode != HIGH)
@@ -365,23 +360,77 @@ void WifiClock::decr_button_callback(void (*func)(void), int mode)
 		return;
 	attachInterrupt(digitalPinToInterrupt(DECR), func, mode);
 }
-/*
-void WifiClock::clock_timer_callback(void)
+
+byte WifiClock::debounce(int button)
 {
-	
+	byte flag = 0;
+	for (int i = 0; i < ACCURACY; i++) {
+		flag |= digitalRead(button);
+		if (flag) {
+			return !flag;
+		}
+		delayMicroseconds(8);
+	}
+	return !flag;
 }
-*/
+
+// Timer Functions
 void WifiClock::timer_callback(float period, void (*func)(void))
 {
 	_timer.attach(period, func);
 }
+
+// Beeper Functions
+void WifiClock::play_note(float frequency)
+{
+  timer1_detachInterrupt();
+  timer1_attachInterrupt(_play);
+  timer1_enable(TIM_DIV16, TIM_EDGE, TIM_LOOP);
+  timer1_write(2500000 / frequency);
+}
+
+void WifiClock::stop_note(void)
+{
+	timer1_disable();
+	digitalWrite(BEEPER, HIGH);
+}
+
+// Beeper Helper Functions
+void WifiClock::_play(void)
+{
+  _currPlay = !_currPlay;
+  digitalWrite(BEEPER, _currPlay);
+}
+
+// Not Yet Implemented
 /*
-void WifiClock::_update_clock24(void)
+void WifiClock::connect_to_wifi(char* ssid, char* password)
 {
 	
 }
 
-byte WifiClock::_debounce(int button)
+void WifiClock::set_time(int hour, int minute, int second)
 {
-	return 0;
-}*/
+	
+}
+
+void WifiClock::set_time_ntp(int utc_offset)
+{
+	
+}
+
+void WifiClock::start_clock24(void)
+{
+	
+}
+
+void WifiClock::clock_timer_callback(void)
+{
+	
+}
+
+void WifiClock::_update_clock24(void)
+{
+	
+}
+*/

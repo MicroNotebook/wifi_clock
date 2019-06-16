@@ -10,3 +10,6 @@ The lastest binary version of the Library is always available from the
 
 ## Installation
 The library can be installed using the [standard Arduino library install procedure](http://arduino.cc/en/Guide/Libraries#.UwxndHX5PtY).
+
+## Dependencies
+This library needs the *Ticker* and *LedControl* libraries installed to function correctly. These libraries can be installed with the **Library Manager** in Arduino (see [standard Arduino library install procedure](http://arduino.cc/en/Guide/Libraries#.UwxndHX5PtY)).

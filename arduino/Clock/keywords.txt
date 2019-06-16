@@ -1,0 +1,24 @@
+#######################################
+# Syntax Coloring Map For WifiClock
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+
+Clock	KEYWORD1
+Time	KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+
+getTime	KEYWORD2
+setTime	KEYWORD2
+enableTimer	KEYWORD2
+disableTimer	KEYWORD2
+_increase_second	KEYWORD2
+
+#######################################
+# Constants (LITERAL1)
+#######################################

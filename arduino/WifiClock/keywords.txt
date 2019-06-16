@@ -19,7 +19,6 @@ start_clock24	KEYWORD2
 display_brightness	KEYWORD2
 display_clear	KEYWORD2
 write_num	KEYWORD2
-write_num_f	KEYWORD2
 write_hex	KEYWORD2
 toggle_led	KEYWORD2
 set_led	KEYWORD2
@@ -35,6 +34,7 @@ incr_button_callback	KEYWORD2
 decr_button_callback	KEYWORD2
 clock_timer_callback	KEYWORD2
 timer_callback	KEYWORD2
+debounce	KEYWORD2
 
 #######################################
 # Constants (LITERAL1)
@@ -107,3 +107,11 @@ NOTE_A5	LITERAL1
 NOTE_AF5	LITERAL1
 NOTE_BF5	LITERAL1
 NOTE_B5	LITERAL1
+NOTE_B5	LITERAL1
+MAX_INT	LITERAL1
+MIN_INT	LITERAL1
+MAX_HEX	LITERAL1
+MIN_HEX	LITERAL1
+MAX_FLOAT	LITERAL1
+MIN_FLOAT	LITERAL1
+ACCURACY	LITERAL1
