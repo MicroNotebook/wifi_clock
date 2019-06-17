@@ -5,7 +5,7 @@ WifiClock is an Arduino library written for the Wifi Clock kit developed by Micr
 Documentation for the Wifi Clock kit is on our website [here](https://micronote.tech/wificlock_product/index.html). Documentation for the library can be found on our [github page](https://github.com/MicroNotebook/wifi_clock/tree/master/arduino).
 
 ## Download
-The lastest binary version of the Library is always available from the 
+The latest source code version of the Library is always available from the 
 [WifiClock page](https://github.com/MicroNotebook/wifi_clock/tree/master/arduino).
 
 ## Installation

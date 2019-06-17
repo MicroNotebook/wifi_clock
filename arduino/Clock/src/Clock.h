@@ -21,8 +21,8 @@ class Clock
 		Clock(Time time);
 		Time getTime(bool military=true);
 		void setTime(byte sec, byte min, byte hr, byte day=255, byte month=255, int year=-1000);
-		void enableTimer(void); 
-		void disableTimer(void);
+		void startClock(void); 
+		void stopClock(void);
 		void _increase_second(void);
 
 	private:

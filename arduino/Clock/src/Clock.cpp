@@ -30,7 +30,7 @@ Clock::Clock(byte sec, byte min, byte hr, byte day, byte month, int year)
 
 Clock::Clock(Time time)
 {
-  _t = time;
+	_t = time;
 }
 
 Time Clock::getTime(bool military)
@@ -73,9 +73,23 @@ void Clock::setTime(byte sec, byte min, byte hr, byte day, byte month, int year)
 	}
 }
 
-void Clock::disableTimer(void)
+void Clock::startClock(void)
+{
+	_timer.attach(1.0, [this](void){ this->_increase_second(); });
+}
+
+void Clock::stopClock(void)
 {
 	_timer.detach();
+}
+
+void Clock::_increase_second(void)
+{
+	_t.seconds++;
+	if (_t.seconds >= 60) {
+		_t.seconds = 0;
+		_increase_minute();
+	}
 }
 
 void Clock::_increase_year(void)
@@ -160,18 +174,4 @@ void Clock::_increase_minute(void)
 		_t.minutes = 0;
 		_increase_hour();
 	}
-}
-
-void Clock::_increase_second(void)
-{
-	_t.seconds++;
-	if (_t.seconds >= 60) {
-		_t.seconds = 0;
-		_increase_minute();
-	}
-}
-
-void Clock::enableTimer(void)
-{
-	_timer.attach(1.0, [this](void){ this->_increase_second(); });
 }
