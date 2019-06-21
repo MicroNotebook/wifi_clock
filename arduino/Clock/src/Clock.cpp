@@ -3,34 +3,17 @@
 
 Clock::Clock(byte sec, byte min, byte hr, byte day, byte month, int year)
 {
-	if (sec < 60 && sec >= 0) {
-		_t.seconds = sec;
-	}
-	if (min < 60 && min >= 0) {
-		_t.minutes = min;
-	}
-	if (hr < 24 && hr >= 0) {
-		_t.hours = hr;
-	}
-	if (day > 0 && day <= 31) {
-		_t.days = day;
-	}
-	if (month > 0 && month <= 12) {
-		_t.months = month;
-	}
-	if (year > -1000 && year <= 9999) {
-		_t.years = year;
-	}
-	if (_t.hours >= 12) {
-		_t.PM = true;
-	} else {
-		_t.PM = false;
-	}
+	this->setTime(sec, min, hr, day, month, year);
 }
 
 Clock::Clock(Time time)
 {
-	_t = time;
+	this->setTime(time);
+}
+
+Clock::Clock(void)
+{
+	/* NOP */
 }
 
 Time Clock::getTime(bool military)
@@ -44,6 +27,33 @@ Time Clock::getTime(bool military)
 		}
 	}
 	return temp;
+}
+
+void Clock::setTime(Time time)
+{
+	if (time.seconds < 60 && time.seconds >= 0) {
+		_t.seconds = time.seconds;
+	}
+	if (time.minutes < 60 && time.minutes >= 0) {
+		_t.minutes = time.minutes;
+	}
+	if (time.hours < 24 && time.hours >= 0) {
+		_t.hours = time.hours;
+	}
+	if (time.days > 0 && time.days <= 31) {
+		_t.days = time.days;
+	}
+	if (time.months > 0 && time.months <= 12) {
+		_t.months = time.months;
+	}
+	if (time.years > -1000 && time.years <= 9999) {
+		_t.years = time.years;
+	}
+	if (_t.hours >= 12) {
+		_t.PM = true;
+	} else {
+		_t.PM = false;
+	}
 }
 
 void Clock::setTime(byte sec, byte min, byte hr, byte day, byte month, int year)

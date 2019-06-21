@@ -3,6 +3,7 @@
 
 #include "Arduino.h"
 #include "LedControl.h"
+#include "Clock.h"
 #include "Ticker.h"
 
 #define RLED	0
@@ -119,7 +120,6 @@ class WifiClock
 	void clear_led(int led1, int led2=-1, int led3=-1);
 	void toggle_led(int led1, int led2=-1, int led3=-1);
 	
-	
 	// Button Functions
 	int  get_button(int button);
 	void copy_state(int button, int led);
@@ -135,6 +135,18 @@ class WifiClock
 	void play_note(float frequency);
 	void stop_note(void);
 	
+	// Clock Functions
+	void start_clock(void);
+	void stop_clock(void);
+	Time get_time(bool military);
+	void set_time(Time time);
+	void set_time(byte sec, byte min, byte hr, byte day, byte month, int year);
+	void display_time(bool military, bool secs=true, bool right=true);
+	void display_date(byte pos=0);
+	void display_day(byte pos=0);
+	void display_month(byte pos=0);
+	void display_year(byte pos=0);
+	
 	// Not Yet Implemented
 	/*void connect_to_wifi(char* ssid, char* password);
     void set_time(int hour, int minute, int second);
@@ -147,7 +159,7 @@ class WifiClock
     const int _digits[6] = {DIG0, DIG1, DIG2, DIG3, DIG4, DIG5};
 	LedControl _lc = LedControl(DIN, CLK, LOAD, 1);					// Initialize MAX7219
 	Ticker _timer;													// Initialize timer
-	//Clock _clock;													// Initialize a clock
+	Clock _clock = Clock();											// Initialize a clock
 	byte _curr_type = 0;											// 0: nothing
 																	// 1: int
 																	// 2: hex
@@ -166,6 +178,8 @@ class WifiClock
 	bool _check_int(int val, bool add);
 	bool _check_hex(unsigned int val, bool add);
 	bool _check_float(double val, bool add);
+	void _easy_write(byte digit, byte val);
+	void _multi_display(byte five, byte four, byte three, byte two, byte one, byte zero);
 	
 	// Beeper Helper Functions
 	static void _play(void);

@@ -17,12 +17,30 @@ struct Time {
 class Clock
 {
 	public:
+		// Constructors
 		Clock(byte sec, byte min, byte hr, byte day=255, byte month=255, int year=-1000);
 		Clock(Time time);
-		Time getTime(bool military=true);
+		Clock(void);
+		
+		// returns the time
+		// if military = true, return the time in 24 hour mode
+		// else, return the time in 12 hour mode
+		Time getTime(bool military);
+		
+		// set the time with either a time sturcture,
+		// or the individual elements
+		// if any of the entries are invalid, they will be skipped over
+		void setTime(Time time);
 		void setTime(byte sec, byte min, byte hr, byte day=255, byte month=255, int year=-1000);
+		
+		// start the timer for the clock
 		void startClock(void); 
+		
+		// stop the timer for the clock
 		void stopClock(void);
+		
+		// this function should not be used
+		// this is used to update the time with the timer
 		void _increase_second(void);
 
 	private:

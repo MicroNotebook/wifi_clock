@@ -15,8 +15,8 @@ Time	KEYWORD1
 
 getTime	KEYWORD2
 setTime	KEYWORD2
-enableTimer	KEYWORD2
-disableTimer	KEYWORD2
+startClock	KEYWORD2
+stopClock	KEYWORD2
 _increase_second	KEYWORD2
 
 #######################################

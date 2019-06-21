@@ -76,9 +76,6 @@ void WifiClock::write_num(int value, byte dp, bool right, bool zeros)
 	_curr_zeros = zeros;
 	_curr_type = 1;
 	
-	// clear display
-	_lc.clearDisplay(0);
-	
 	// default values
 	int ll = 0;
 	int ul = 6;
@@ -138,9 +135,6 @@ void WifiClock::write_hex(unsigned int value)
 	// save values
 	_curr_hex = value;
 	_curr_type = 2;
-	
-	// clear display
-	_lc.clearDisplay(0);
 	
 	for (int i = 0; i < 6; i++) {
 		_lc.setDigit(0, _digits[i], value % 16, false);
@@ -283,6 +277,23 @@ bool WifiClock::_check_float(double val, bool add)
 	}
 }
 
+void WifiClock::_easy_write(byte digit, byte val)
+{
+	if (val <= 15) {
+		_lc.setDigit(0, digit, val, false);
+	}
+}
+
+void WifiClock::_multi_display(byte five, byte four, byte three, byte two, byte one, byte zero)
+{
+	_easy_write(5, five);
+	_easy_write(4, four);
+	_easy_write(3, three);
+	_easy_write(2, two);
+	_easy_write(1, one);
+	_easy_write(0, zero);
+}
+
 // LED Functions
 /********************************
 * This function is similar to	*
@@ -400,6 +411,106 @@ void WifiClock::_play(void)
 {
   _currPlay = !_currPlay;
   digitalWrite(BEEPER, _currPlay);
+}
+
+// Clock Functions
+void WifiClock::start_clock(void)
+{
+	_clock.startClock();
+}
+
+void WifiClock::stop_clock(void)
+{
+	_clock.stopClock();
+}
+
+Time WifiClock::get_time(bool military)
+{
+	return _clock.getTime(military);
+}
+
+void WifiClock::set_time(Time time)
+{
+	_clock.setTime(time);
+}
+
+void WifiClock::set_time(byte sec, byte min, byte hr, byte day, byte month, int year)
+{
+	_clock.setTime(sec, min, hr, day, month, year);
+}
+
+void WifiClock::display_time(bool military, bool secs, bool right)
+{
+	// Configure Time
+	Time t = _clock.getTime(military);
+	byte hour = t.hours;
+	byte min = t.minutes;
+	byte sec = t.seconds;
+	
+	// Display Time
+	if (secs) {			// seconds
+		_multi_display(hour / 10, hour % 10, min / 10, min % 10, sec / 10, sec % 10);
+	} else {
+		if (right) {	// no seconds, right aligned
+			_multi_display(255, 255, hour / 10, hour % 10, min / 10, min % 10);
+			
+		} else {		// no seconds, left aligned
+			_multi_display(hour / 10, hour % 10, min / 10, min % 10, 255, 255);
+		}
+		_curr_type = 0;
+	}
+}
+
+void WifiClock::display_date(byte pos)
+{
+  // Configure Date
+  Time t = _clock.getTime(false);
+  byte day = t.days;
+  byte month = t.months;
+  
+  // Display Date
+  if (pos <= 2) {
+    _lc.setDigit(0, pos++, day % 10, false);
+    _lc.setDigit(0, pos++, day / 10, false);
+    _lc.setDigit(0, pos++, month % 10, false);
+    _lc.setDigit(0, pos, month / 10, false);
+	_curr_type = 0;
+  }
+}
+
+void WifiClock::display_day(byte pos)
+{
+  byte day = (_clock.getTime(false)).days;
+  if (pos <= 4) {
+    _lc.setDigit(0, pos++, day % 10, false);
+    _lc.setDigit(0, pos, day / 10, false);
+	_curr_type = 0; 
+  }
+}
+
+void WifiClock::display_month(byte pos)
+{
+  byte month = (_clock.getTime(false)).months;
+  if (pos <= 4) {
+    _lc.setDigit(0, pos++, month % 10, false);
+    _lc.setDigit(0, pos, month / 10, false);
+	_curr_type = 0;
+  }
+}
+
+void WifiClock::display_year(byte pos)
+{
+  // Configure Date
+  int year = (_clock.getTime(false)).years;
+  
+  // Display Date
+  if (pos <= 2) {
+    for(int i = pos ; i < pos + 4; i++) {
+      _lc.setDigit(0, i, year % 10, false);
+      year /= 10;
+    }
+	_curr_type = 0;
+  }
 }
 
 // Not Yet Implemented
