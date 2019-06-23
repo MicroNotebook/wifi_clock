@@ -17,7 +17,6 @@ getTime	KEYWORD2
 setTime	KEYWORD2
 startClock	KEYWORD2
 stopClock	KEYWORD2
-_increase_second	KEYWORD2
 
 #######################################
 # Constants (LITERAL1)

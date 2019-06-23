@@ -4,16 +4,51 @@
 #include "Arduino.h"
 #include "Ticker.h"
 
+/****************************************/
+/************ Time Structure ************/
+/****************************************/
 struct Time {
-	byte seconds;
-	byte minutes;
-	byte hours;
-	byte days;
-	byte months;
-	int years;
-	bool PM;
+    byte seconds;
+    byte minutes;
+    byte hours;
+    byte days;
+    byte months;
+    int years;
+    bool PM;
+    
+    bool operator==(const Time &other) const
+    {
+        return (seconds == other.seconds)
+            && (minutes == other.minutes)
+            && (hours == other.hours)
+            && (days == other.days)
+            && (months == other.months)
+            && (years == other.years)
+            && (PM == other.PM);
+    }
 };
 
+namespace std {
+    template <>
+    struct hash<Time>
+    {
+        size_t operator()(const Time& t) const
+        {
+            return (hash<byte>()(t.seconds))
+                ^ ((hash<byte>()(t.minutes) << 1) >> 1)
+                ^ (hash<byte>()(t.hours) << 1)
+                ^ ((hash<byte>()(t.days) << 1) >> 1)
+                ^ (hash<byte>()(t.months) << 1)
+                ^ ((hash<int>()(t.years) << 1) >> 1)
+                ^ (hash<bool>()(t.PM) << 1);
+        }
+    };
+}
+
+
+/*************************************/
+/************ Clock Class ************/
+/*************************************/
 class Clock
 {
 	public:
@@ -39,9 +74,6 @@ class Clock
 		// stop the timer for the clock
 		void stopClock(void);
 		
-		// this function should not be used
-		// this is used to update the time with the timer
-		void _increase_second(void);
 
 	private:
 		Time _t = {0, 0, 0, 1, 1, 0};
@@ -52,6 +84,7 @@ class Clock
 		void _increase_day(void);
 		void _increase_hour(void);
 		void _increase_minute(void);
+		void _increase_second(void);
 };
 
 

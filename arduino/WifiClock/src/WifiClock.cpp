@@ -22,10 +22,6 @@ WifiClock::WifiClock(void)
   pinMode(MODE, INPUT_PULLUP);
   pinMode(INCR, INPUT_PULLUP);
   pinMode(DECR, INPUT_PULLUP);
-
-  // Initialize current number and current decimal points
-  
-  // Setup rtc
   
   // Clear 7-segment displays
   _lc.shutdown(0, false);
@@ -511,6 +507,38 @@ void WifiClock::display_year(byte pos)
     }
 	_curr_type = 0;
   }
+}
+
+// Scheduling Functions
+void WifiClock::schedule_event(Time t, void (*func)(void))
+{
+	_schedule.insert({t, func});
+}
+
+void WifiClock::remove_event(Time t)
+{
+	if (_schedule.find(t) != _schedule.end()) {
+		_schedule.erase(t);
+	}
+}
+
+void WifiClock::check_schedule(bool military)
+{
+	Time t = _clock.getTime(military);
+	if (_schedule.find(t) != _schedule.end()) {
+		_schedule[t]();
+	}
+}
+
+bool WifiClock::event_scheduled(Time t)
+{
+	return _schedule.find(t) != _schedule.end();
+}
+
+bool WifiClock::event_scheduled(void)
+{
+	Time t = _clock.getTime(false);
+	return _schedule.find(t) != _schedule.end();
 }
 
 // Not Yet Implemented

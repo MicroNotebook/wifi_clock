@@ -93,15 +93,6 @@ void Clock::stopClock(void)
 	_timer.detach();
 }
 
-void Clock::_increase_second(void)
-{
-	_t.seconds++;
-	if (_t.seconds >= 60) {
-		_t.seconds = 0;
-		_increase_minute();
-	}
-}
-
 void Clock::_increase_year(void)
 {
 	_t.years++;
@@ -183,5 +174,14 @@ void Clock::_increase_minute(void)
 	if (_t.minutes >= 60) {
 		_t.minutes = 0;
 		_increase_hour();
+	}
+}
+
+void Clock::_increase_second(void)
+{
+	_t.seconds++;
+	if (_t.seconds >= 60) {
+		_t.seconds = 0;
+		_increase_minute();
 	}
 }

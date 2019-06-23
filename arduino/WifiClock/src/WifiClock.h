@@ -1,6 +1,7 @@
 #ifndef WIFICLOCK_H
 #define WIFICLOCK_H
 
+#include <unordered_map>
 #include "Arduino.h"
 #include "LedControl.h"
 #include "Clock.h"
@@ -90,10 +91,13 @@
 
 #define ACCURACY	64
 
+typedef void (*function_t)(void);
+typedef std::unordered_map<Time, function_t> Schedule;
+
 class WifiClock
 {	
   public:
-	// Initializer
+	// Constructor
     WifiClock(void);
 	
 	// Display Control Functions
@@ -115,25 +119,25 @@ class WifiClock
 	double get_curr_float(void);
 	
 	// LED Functions
-	void write_led(int led, byte state);
-	void set_led(int led1, int led2=-1, int led3=-1);
-	void clear_led(int led1, int led2=-1, int led3=-1);
-	void toggle_led(int led1, int led2=-1, int led3=-1);
+	static void write_led(int led, byte state);
+	static void set_led(int led1, int led2=-1, int led3=-1);
+	static void clear_led(int led1, int led2=-1, int led3=-1);
+	static void toggle_led(int led1, int led2=-1, int led3=-1);
 	
 	// Button Functions
-	int  get_button(int button);
-	void copy_state(int button, int led);
-	void mode_button_callback(void (*func)(void), int mode);
-    void incr_button_callback(void (*func)(void), int mode);
-    void decr_button_callback(void (*func)(void), int mode);
-	byte debounce(int button);
+	static int get_button(int button);
+	static void copy_state(int button, int led);
+	static void mode_button_callback(void (*func)(void), int mode);
+    static void incr_button_callback(void (*func)(void), int mode);
+    static void decr_button_callback(void (*func)(void), int mode);
+	static byte debounce(int button);
 	
 	// Timer Functions
 	void timer_callback(float period, void (*func)(void));
 	
 	// Beeper Functions
-	void play_note(float frequency);
-	void stop_note(void);
+	static void play_note(float frequency);
+	static void stop_note(void);
 	
 	// Clock Functions
 	void start_clock(void);
@@ -147,6 +151,13 @@ class WifiClock
 	void display_month(byte pos=0);
 	void display_year(byte pos=0);
 	
+	// Scheduling Functions
+	void schedule_event(Time t, void (*func)(void));
+	void remove_event(Time t);
+	void check_schedule(bool military);
+	bool event_scheduled(Time t);
+	bool event_scheduled(void);
+	
 	// Not Yet Implemented
 	/*void connect_to_wifi(char* ssid, char* password);
     void set_time(int hour, int minute, int second);
@@ -158,6 +169,7 @@ class WifiClock
   private:
     const int _digits[6] = {DIG0, DIG1, DIG2, DIG3, DIG4, DIG5};
 	LedControl _lc = LedControl(DIN, CLK, LOAD, 1);					// Initialize MAX7219
+	Schedule _schedule;												// Initialize unordered map
 	Ticker _timer;													// Initialize timer
 	Clock _clock = Clock();											// Initialize a clock
 	byte _curr_type = 0;											// 0: nothing
