@@ -1,0 +1,200 @@
+#ifndef WIFICLOCK_H
+#define WIFICLOCK_H
+
+#include <unordered_map>
+#include "Arduino.h"
+#include "LedControl.h"
+#include "Clock.h"
+#include "Ticker.h"
+
+#define RLED	0
+#define GLED	4
+#define BLED	5
+
+#define BEEPER	16
+
+#define MODE	9
+#define INCR	10
+#define DECR	2
+
+#define CLK		14
+#define DIN		13
+#define LOAD	15
+
+#define DIG0	0
+#define DIG1	1
+#define DIG2	2
+#define DIG3	3
+#define DIG4	4
+#define DIG5	5
+
+#define NOTE_C3		130.8
+#define NOTE_CS3	138.6
+#define NOTE_DF3	138.6
+#define NOTE_D3		146.8
+#define NOTE_DS3	155.6
+#define NOTE_EF3	155.6
+#define NOTE_E3		164.8
+#define NOTE_F3		174.6
+#define NOTE_FS3	185.0
+#define NOTE_GF3	185.0
+#define NOTE_G3		196.0
+#define NOTE_GS3	207.7
+#define NOTE_AF3	207.7
+#define NOTE_A3		220.0
+#define NOTE_AS3	233.1
+#define NOTE_BF3	233.1
+#define NOTE_B3		246.9
+
+#define NOTE_C4		261.6
+#define NOTE_CS4	277.2
+#define NOTE_DF4	277.2
+#define NOTE_D4		293.7
+#define NOTE_DS4	311.1
+#define NOTE_EF4	311.1
+#define NOTE_E4		329.6
+#define NOTE_F4		349.2
+#define NOTE_FS4	370.0
+#define NOTE_GF4	370.0
+#define NOTE_G4		392.0
+#define NOTE_GS4	415.3
+#define NOTE_AF4	415.3
+#define NOTE_A4		440.0
+#define NOTE_AS4	466.2
+#define NOTE_BF4	466.2
+#define NOTE_B4		493.9
+
+#define NOTE_C5		523.3
+#define NOTE_CS5	554.4
+#define NOTE_DF5	554.4
+#define NOTE_D5		587.3
+#define NOTE_DS5	622.3
+#define NOTE_EF5	622.3
+#define NOTE_E5		659.3
+#define NOTE_F5		698.5
+#define NOTE_FS5	740.0
+#define NOTE_GF5	740.0
+#define NOTE_G5		784.0
+#define NOTE_GS5	830.6
+#define NOTE_AF5	830.6
+#define NOTE_A5		880.0
+#define NOTE_AS5	932.3
+#define NOTE_BF5	932.3
+#define NOTE_B5		987.8
+
+#define MAX_INT		999999
+#define MIN_INT		-99999
+#define MAX_HEX		0xFFFFFF
+#define MIN_HEX		0x000000
+#define MAX_FLOAT	999999.0
+#define MIN_FLOAT	-99999.0
+
+#define ACCURACY	64
+
+typedef void (*function_t)(void);
+typedef std::unordered_map<Time, function_t> Schedule;
+
+class WifiClock
+{	
+  public:
+	// Constructor
+    WifiClock(void);
+	
+	// Display Control Functions
+    void display_brightness(int value);
+    void display_clear(void);
+	void write_led(int digit, int led, bool state);
+	void write_digit(int digit, int value);
+	
+	// Display Write Functions
+    void write_num(int value, byte dp=0, bool right=true, bool zeros=true);
+    void write_num(double value);
+	void write_hex(unsigned int value);
+    void increment_num(int val);
+	void increment_num(double val);
+    void decrement_num(int val);
+	void decrement_num(double val);
+	int get_curr_int(void);
+	unsigned int get_curr_hex(void);
+	double get_curr_float(void);
+	
+	// LED Functions
+	static void write_led(int led, byte state);
+	static void set_led(int led1, int led2=-1, int led3=-1);
+	static void clear_led(int led1, int led2=-1, int led3=-1);
+	static void toggle_led(int led1, int led2=-1, int led3=-1);
+	
+	// Button Functions
+	static int get_button(int button);
+	static void copy_state(int button, int led);
+	static void mode_button_callback(void (*func)(void), int mode);
+    static void incr_button_callback(void (*func)(void), int mode);
+    static void decr_button_callback(void (*func)(void), int mode);
+	static byte debounce(int button);
+	
+	// Timer Functions
+	void timer_callback(float period, void (*func)(void));
+	
+	// Beeper Functions
+	static void play_note(float frequency);
+	static void stop_note(void);
+	
+	// Clock Functions
+	void start_clock(void);
+	void stop_clock(void);
+	Time get_time(bool military);
+	void set_time(Time time);
+	void set_time(byte sec, byte min, byte hr, byte day, byte month, int year);
+	void display_time(bool military, bool secs=true, bool right=true);
+	void display_date(byte pos=0);
+	void display_day(byte pos=0);
+	void display_month(byte pos=0);
+	void display_year(byte pos=0);
+	
+	// Scheduling Functions
+	void schedule_event(Time t, void (*func)(void));
+	void remove_event(Time t);
+	void check_schedule(bool military);
+	bool event_scheduled(Time t);
+	bool event_scheduled(void);
+	
+	// Not Yet Implemented
+	/*void connect_to_wifi(char* ssid, char* password);
+    void set_time(int hour, int minute, int second);
+    void set_time_ntp(int utc_offset);
+    void start_clock24(void);*/
+	//void clock_timer_callback(void (*func)(void));
+	//void _update_clock24(void);
+	
+  private:
+    const int _digits[6] = {DIG0, DIG1, DIG2, DIG3, DIG4, DIG5};
+	LedControl _lc = LedControl(DIN, CLK, LOAD, 1);					// Initialize MAX7219
+	Schedule _schedule;												// Initialize unordered map
+	Ticker _timer;													// Initialize timer
+	Clock _clock = Clock();											// Initialize a clock
+	byte _curr_type = 0;											// 0: nothing
+																	// 1: int
+																	// 2: hex
+																	// 3: float
+	int _curr_int = 0;
+	unsigned int _curr_hex = 0x0;
+	double _curr_float = 0.0;
+	byte _curr_dp = 0x0;
+	bool _curr_right = true;
+	bool _curr_zeros = true;
+	
+	// Display Helper Functions
+	int _count(int n);
+	byte _place_decimal(double f);
+	int _getDig(double f, int ub);
+	bool _check_int(int val, bool add);
+	bool _check_hex(unsigned int val, bool add);
+	bool _check_float(double val, bool add);
+	void _easy_write(byte digit, byte val);
+	void _multi_display(byte five, byte four, byte three, byte two, byte one, byte zero);
+	
+	// Beeper Helper Functions
+	static void _play(void);
+};
+
+#endif

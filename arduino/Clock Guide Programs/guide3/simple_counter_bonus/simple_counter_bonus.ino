@@ -14,15 +14,6 @@ void setup() {
 
 void write_num(int n)
 {
-  int ones = n % 10;
-  int tens = n / 10;
-  lc.setDigit(0, 0, ones, false);
-  lc.setDigit(0, 1, tens, false);
-}
-
-// Bonus
-/*void write_num(int n)
-{
   int seconds = n % 60;
   int minutes = n / 60;
   int secOnes = seconds % 10;
@@ -33,17 +24,11 @@ void write_num(int n)
   lc.setDigit(0, 1, secTens, false);
   lc.setDigit(0, 2, minOnes, false);
   lc.setDigit(0, 3, minTens, false);
-}*/
+}
 
 void loop() {
-  for (int i = 0; i < 60; i++) {
+  for (int i = 0; i < 3600; i++) {
     write_num(i);
     delay(1000);
   }
-
-  // Bonus
-  /*for (int i = 0; i < 3600; i++) {
-    write_num(i);
-    delay(1000);
-  }*/
 }
