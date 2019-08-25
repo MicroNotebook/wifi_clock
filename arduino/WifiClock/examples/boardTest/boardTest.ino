@@ -1,11 +1,12 @@
-#include "WifiClock.h"
+#include <WifiClock.h>
 
-WifiClock wc = WifiClock();
+WifiClock wc = WifiClock(); // make instance of WifiClock
+
 const float period = 0.1;
-volatile int count = -1;
 byte check = 0;
 byte state = 0;
 
+// button interrupts
 void ICACHE_RAM_ATTR change_r(void)
 {
   wc.copy_state(MODE, RLED);
@@ -21,10 +22,10 @@ void ICACHE_RAM_ATTR change_b(void)
   wc.copy_state(DECR, BLED);
 }
 
+// timer interrupts
 void countUp(void)
 {
-  count++;
-  wc.write_num_f(count, 0x0, true, false);
+  wc.increment_num(1);
 }
 
 void playSound(void)
@@ -42,7 +43,9 @@ void playSound(void)
   }
 }
 
-Ticker timer;
+// timers
+Ticker timer1;
+Ticker timer2;
 
 void setup() {
   //attach interupts to buttons
@@ -51,12 +54,13 @@ void setup() {
   wc.decr_button_callback(change_b, CHANGE);
 
   //attach timer ISR
-  wc.timer_callback(period, countUp);
-  timer.attach(0.5, playSound);
+  timer1.attach(period, countUp);
+  timer2.attach(0.5, playSound);
+  wc.write_num(0, 0x0, true, false);
 }
 
 void loop() {
-  if (wc.get_button(MODE) && wc.get_button(DECR) && wc.get_button(INCR)) {
+  if (wc.get_button(MODE) && wc.get_button(DECR) && wc.get_button(INCR)) { // if all buttons pressed
     check = !check;
   }
   delay(100);
