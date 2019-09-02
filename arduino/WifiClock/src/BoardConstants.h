@@ -7,7 +7,7 @@
 
 #define BEEPER	16
 
-#define MODE	9
+#define MODE	12
 #define INCR	10
 #define DECR	2
 
