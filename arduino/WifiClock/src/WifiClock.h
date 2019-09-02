@@ -94,10 +94,10 @@ class WifiClock
 	bool event_scheduled(void);
 	
 	// Wifi Time Functions
-	void connect_to_wifi(const char* ssid, const char* password);
+	void connect_to_wifi(const char* ssid, const char* password, bool disp=false);
 	bool check_connection(void);
-	void start_wifi_time(const char* ssid, const char* password);
-	void start_wifi_time(const char* ssid, const char* password, short offset);
+	void start_wifi_time(const char* ssid, const char* password, bool disp=false);
+	void start_wifi_time(const char* ssid, const char* password, short offset, bool disp=false);
 	void stop_wifi_time(void);
 	void set_time_offset(short offset);
 	void set_military_time(bool set);
@@ -125,7 +125,7 @@ class WifiClock
 	
 	WiFiUDP _ntpUDP;
 	NTPClient _timeClient = NTPClient(_ntpUDP);
-	unsigned short _hours;
+	short _hours;
 	unsigned short _minutes;
 	unsigned short _seconds;
 	bool _pm;
