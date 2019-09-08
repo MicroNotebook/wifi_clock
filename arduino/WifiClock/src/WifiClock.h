@@ -17,7 +17,6 @@
 // project header files
 #include "NoteConstants.h"
 #include "BoardConstants.h"
-#include "Clock.h"
 
 // constants
 #define MAX_INT		999999
@@ -108,10 +107,8 @@ class WifiClock
 	
 	
   private:
-    const int _digits[6] = {DIG0, DIG1, DIG2, DIG3, DIG4, DIG5};
 	LedControl _lc = LedControl(DIN, CLK, LOAD, 1);					// Initialize MAX7219
 	Schedule _schedule;												// Initialize unordered map
-	Clock _clock = Clock();											// Initialize a clock
 	byte _curr_type = 0;											// 0: nothing
 																	// 1: int
 																	// 2: hex
@@ -123,8 +120,14 @@ class WifiClock
 	bool _curr_right = true;
 	bool _curr_zeros = true;
 	
+	// variables used to for time keeping in wifi clock
 	WiFiUDP _ntpUDP;
 	NTPClient _timeClient = NTPClient(_ntpUDP);
+	
+	// variables used for time keeping
+	int _years;
+	short _months;
+	short _days;
 	short _hours;
 	unsigned short _minutes;
 	unsigned short _seconds;

@@ -28,7 +28,7 @@ void WifiClock::write_led(int digit, int led, bool state)
 
 void WifiClock::write_digit(int digit, int value)
 {
-	_lc.setDigit(0, _digits[digit], value, false);
+	_lc.setDigit(0, digit, value, false);
 	_curr_type = 0;
 }
 
@@ -64,13 +64,13 @@ void WifiClock::write_num(int value, byte dp, bool right, bool zeros)
 	}
 	
 	for (int i = ll ; i < ul; i++) {
-		_lc.setDigit(0, _digits[i], value % 10, dp & 0x1);
+		_lc.setDigit(0, i, value % 10, dp & 0x1);
 		value /= 10;
 		dp >>= 1;
 	}
 	
 	if (flag) {
-		_lc.setChar(0, _digits[ul], '-', dp & 0x1);
+		_lc.setChar(0, ul, '-', dp & 0x1);
 	}
 }
 
@@ -103,7 +103,7 @@ void WifiClock::write_hex(unsigned int value)
 	_curr_type = 2;
 	
 	for (int i = 0; i < 6; i++) {
-		_lc.setDigit(0, _digits[i], value % 16, false);
+		_lc.setDigit(0, i, value % 16, false);
 		value >>= 4;
 	}
 }

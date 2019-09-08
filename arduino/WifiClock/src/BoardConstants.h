@@ -15,11 +15,4 @@
 #define DIN		13
 #define LOAD	15
 
-#define DIG0	0
-#define DIG1	1
-#define DIG2	2
-#define DIG3	3
-#define DIG4	4
-#define DIG5	5
-
 #endif
