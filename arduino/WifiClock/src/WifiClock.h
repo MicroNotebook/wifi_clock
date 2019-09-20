@@ -98,17 +98,18 @@ class WifiClock
 	void start_wifi_time(const char* ssid, const char* password, bool disp=false);
 	void start_wifi_time(const char* ssid, const char* password, short offset, bool disp=false);
 	void stop_wifi_time(void);
-	void set_time_offset(short offset);
+	void set_wifi_time_offset(short offset);
 	void set_military_time(bool set);
-	void update_time_from_wifi(void);
+	void update_wifi_time(void);
 	unsigned short _correct_hours(void);
-	void display_time(bool display_pm_light=true, int pin=RLED);
-	void update_and_display_time(bool display_pm_light=true, int pin=RLED);
+	void display_wifi_time(bool display_pm_light=true, int pin=RLED);
+	void update_and_display_wifi_time(bool display_pm_light=true, int pin=RLED);
 	
 	
   private:
 	LedControl _lc = LedControl(DIN, CLK, LOAD, 1);					// Initialize MAX7219
-	Schedule _schedule;												// Initialize unordered map
+	
+	// variables to allow for easy update of the display
 	byte _curr_type = 0;											// 0: nothing
 																	// 1: int
 																	// 2: hex

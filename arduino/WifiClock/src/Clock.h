@@ -60,7 +60,7 @@ class Clock
 		// returns the time
 		// if military = true, return the time in 24 hour mode
 		// else, return the time in 12 hour mode
-		Time getTime(bool military);
+		Time getTime(void);
 		
 		// set the time with either a time sturcture,
 		// or the individual elements

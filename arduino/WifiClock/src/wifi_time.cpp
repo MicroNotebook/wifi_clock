@@ -58,7 +58,7 @@ void WifiClock::stop_wifi_time(void)
 	_timeClient.end();
 }
 
-void WifiClock::set_time_offset(short offset)
+void WifiClock::set_wifi_time_offset(short offset)
 {
 	_offset = offset;
 }
@@ -68,7 +68,7 @@ void WifiClock::set_military_time(bool set)
 	_military_time = set;
 }
 
-void WifiClock::update_time_from_wifi(void)
+void WifiClock::update_wifi_time(void)
 {
 	_timeClient.update();
 	_hours = _timeClient.getHours() + _offset;
@@ -97,7 +97,7 @@ unsigned short WifiClock::_correct_hours(void)
 	return hours;
 }
 
-void WifiClock::display_time(bool display_pm_light, int pin)
+void WifiClock::display_wifi_time(bool display_pm_light, int pin)
 {
 	unsigned short hours = this->_correct_hours();
 	
@@ -115,7 +115,7 @@ void WifiClock::display_time(bool display_pm_light, int pin)
 	}
 }
 
-void WifiClock::update_and_display_time(bool display_pm_light, int pin)
+void WifiClock::update_and_display_wifi_time(bool display_pm_light, int pin)
 {
 	this->update_time_from_wifi();
 	this->display_time(display_pm_light, pin);
