@@ -21,18 +21,40 @@ void WifiClock::set_time(Time time)
 	_clock.setTime(time);
 }
 
-void WifiClock::set_time(byte sec, byte min, byte hr, byte day, byte month, int year)
+void WifiClock::set_time(short sec, short min, short hr, short day, short month, int year)
 {
 	_clock.setTime(sec, min, hr, day, month, year);
 }
 
-void WifiClock::display_time(bool secs, bool right)
+void WifiClock::set_military_time(bool set)
+{
+	_military_time = set;
+}
+
+short WifiClock::_correct_hours(short hour)
+{
+	short returned_hours;
+	if (_military_time) {
+		returned_hours = hour;
+	} else {
+		if (hour > 12) { // 1300 - 2300 hours
+			returned_hours = hour - 12;
+		} else if (hour != 0) { // 0100 - 1200 hours
+			returned_hours = hour;
+		} else { // 0000 hours
+			returned_hours = 12;
+		}
+	}
+	return returned_hours;
+}
+
+void WifiClock::display_time(bool secs, bool right, bool display_pm_light, int pin)
 {
 	// Configure Time
 	Time t = _clock.getTime();
-	byte hour = t.hours;
-	byte min = t.minutes;
-	byte sec = t.seconds;
+	short hour = this->_correct_hours(t.hours);
+	short min = t.minutes;
+	short sec = t.seconds;
 	
 	// Display Time
 	if (secs) {			// seconds
@@ -45,6 +67,13 @@ void WifiClock::display_time(bool secs, bool right)
 			_multi_display(hour / 10, hour % 10, min / 10, min % 10, 255, 255);
 		}
 		_curr_type = 0;
+	}
+	
+	// display PM led if desired
+	if (display_pm_light) {
+		if (pin == RLED || pin == BLED || pin == GLED) {
+			digitalWrite(pin, t.PM);
+		}
 	}
 }
 

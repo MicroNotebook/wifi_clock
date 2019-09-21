@@ -17,16 +17,23 @@
 // project header files
 #include "NoteConstants.h"
 #include "BoardConstants.h"
+#include "Clock.h"
 
 // constants
-#define MAX_INT		999999
-#define MIN_INT		-99999
-#define MAX_HEX		0xFFFFFF
-#define MIN_HEX		0x000000
-#define MAX_FLOAT	999999.0
-#define MIN_FLOAT	-99999.0
+#define MAX_INT      999999
+#define MIN_INT      -99999
+#define MAX_HEX      0xFFFFFF
+#define MIN_HEX      0x000000
+#define MAX_FLOAT    999999.0
+#define MIN_FLOAT    -99999.0
 
-#define ACCURACY	64
+#define ACCURACY     64
+
+#define CURR_NOTHING 0
+#define CURR_INT     0
+#define CURR_HEX     0
+#define CURR_FLOAT   0
+#define CURR_TIME    0
 
 typedef void (*function_t)(void);
 typedef std::unordered_map<Time, function_t> Schedule;
@@ -73,13 +80,14 @@ class WifiClock
 	static void play_note(float frequency);
 	static void stop_note(void);
 	
-	// Clock Functions
+	// Timing Functions
 	void start_clock(void);
 	void stop_clock(void);
-	Time get_time(bool military);
+	Time get_time(void);
 	void set_time(Time time);
-	void set_time(byte sec, byte min, byte hr, byte day, byte month, int year);
-	void display_time(bool military, bool secs=true, bool right=true);
+	void set_time(short sec, short min, short hr, short day, short month, int year);
+	void set_military_time(bool set);
+	void display_time(bool secs=true, bool right=true, bool display_pm_light=true, int pin=RLED);
 	void display_date(byte pos=0);
 	void display_day(byte pos=0);
 	void display_month(byte pos=0);
@@ -88,7 +96,7 @@ class WifiClock
 	// Scheduling Functions
 	void schedule_event(Time t, void (*func)(void));
 	void remove_event(Time t);
-	void check_schedule(bool military);
+	void check_schedule(void);
 	bool event_scheduled(Time t);
 	bool event_scheduled(void);
 	
@@ -99,42 +107,37 @@ class WifiClock
 	void start_wifi_time(const char* ssid, const char* password, short offset, bool disp=false);
 	void stop_wifi_time(void);
 	void set_wifi_time_offset(short offset);
-	void set_military_time(bool set);
-	void update_wifi_time(void);
-	unsigned short _correct_hours(void);
-	void display_wifi_time(bool display_pm_light=true, int pin=RLED);
-	void update_and_display_wifi_time(bool display_pm_light=true, int pin=RLED);
+	void set_time_wifi(void);
 	
 	
   private:
 	LedControl _lc = LedControl(DIN, CLK, LOAD, 1);					// Initialize MAX7219
 	
 	// variables to allow for easy update of the display
-	byte _curr_type = 0;											// 0: nothing
-																	// 1: int
-																	// 2: hex
-																	// 3: float
+	byte _curr_type = 0;	// 0: nothing
+							// 1: int
+							// 2: hex
+							// 3: float
+							// 4: time
 	int _curr_int = 0;
 	unsigned int _curr_hex = 0x0;
 	double _curr_float = 0.0;
 	byte _curr_dp = 0x0;
 	bool _curr_right = true;
 	bool _curr_zeros = true;
+	//Time _curr_time;
 	
 	// variables used to for time keeping in wifi clock
 	WiFiUDP _ntpUDP;
 	NTPClient _timeClient = NTPClient(_ntpUDP);
 	
+	// variables used for scheduling
+	Schedule _schedule;
+	
 	// variables used for time keeping
-	int _years;
-	short _months;
-	short _days;
-	short _hours;
-	unsigned short _minutes;
-	unsigned short _seconds;
-	bool _pm;
+	Clock _clock;
 	short _offset = 0;
-	bool _military_time = true;
+	bool _military_time = false;
 	
 	// Display Helper Functions
 	int _count(int n);
@@ -148,6 +151,9 @@ class WifiClock
 	
 	// Beeper Helper Functions
 	static void _play(void);
+	
+	// Timing Helper Functions
+	short _correct_hours(short hour);
 };
 
 #endif

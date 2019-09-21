@@ -1,4 +1,5 @@
 #include "WifiClock.h"
+#include "Clock.h"
 
 void WifiClock::schedule_event(Time t, void (*func)(void))
 {
@@ -12,9 +13,9 @@ void WifiClock::remove_event(Time t)
 	}
 }
 
-void WifiClock::check_schedule(bool military)
+void WifiClock::check_schedule(void)
 {
-	Time t = _clock.getTime(military);
+	Time t = _clock.getTime();
 	if (_schedule.find(t) != _schedule.end()) {
 		_schedule[t]();
 	}
@@ -27,6 +28,6 @@ bool WifiClock::event_scheduled(Time t)
 
 bool WifiClock::event_scheduled(void)
 {
-	Time t = _clock.getTime(false);
+	Time t = _clock.getTime();
 	return _schedule.find(t) != _schedule.end();
 }

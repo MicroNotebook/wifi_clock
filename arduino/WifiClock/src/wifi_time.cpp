@@ -1,4 +1,5 @@
 #include "WifiClock.h"
+#include "Clock.h"
 
 void WifiClock::connect_to_wifi(const char* ssid, const char* password, bool disp)
 {
@@ -63,60 +64,30 @@ void WifiClock::set_wifi_time_offset(short offset)
 	_offset = offset;
 }
 
-void WifiClock::set_military_time(bool set)
+void WifiClock::set_time_wifi(void)
 {
-	_military_time = set;
-}
-
-void WifiClock::update_wifi_time(void)
-{
+	// update the time
 	_timeClient.update();
-	_hours = _timeClient.getHours() + _offset;
-	if (_hours < 0) {
-		_hours += 24;
-	}
-	_pm = _hours >= 12;
-	_minutes = _timeClient.getMinutes();
-	_seconds = _timeClient.getSeconds();
-}
-
-unsigned short WifiClock::_correct_hours(void)
-{
-	unsigned short hours;
-	if (_military_time) {
-		hours = _hours;
-	} else {
-		if (_hours > 12) { // 1300 - 2300 hours
-			hours = _hours - 12;
-		} else if (_hours != 0) { // 0100 - 1200 hours
-			hours = _hours;
-		} else { // 0000 hours
-			hours = 12;
-		}
-	}
-	return hours;
-}
-
-void WifiClock::display_wifi_time(bool display_pm_light, int pin)
-{
-	unsigned short hours = this->_correct_hours();
 	
-	_lc.setDigit(0, 5, hours / 10, false);
-	_lc.setDigit(0, 4, hours % 10, false);
-	_lc.setDigit(0, 3, _minutes / 10, false);
-	_lc.setDigit(0, 2, _minutes % 10, false);
-	_lc.setDigit(0, 1, _seconds / 10, false);
-	_lc.setDigit(0, 0, _seconds % 10, false);
-	
-	if (display_pm_light) {
-		if (pin == RLED || pin == BLED || pin == GLED) {
-			digitalWrite(pin, _pm);
-		}
+	// correct hours
+	short c_hours = _timeClient.getHours() + _offset;
+	if (c_hours >= 24) {
+		c_hours -= 24;
+	} else if (c_hours < 0) {
+		c_hours += 24;
 	}
-}
 
-void WifiClock::update_and_display_wifi_time(bool display_pm_light, int pin)
-{
-	this->update_time_from_wifi();
-	this->display_time(display_pm_light, pin);
+	// make the time struct
+	Time t = {
+		.seconds = _timeClient.getSeconds(),
+		.minutes = _timeClient.getMinutes(),
+		.hours   = c_hours,			// corrected hours
+		.days    = -1,				// invalid and not set
+		.months  = -1,				// invalid and not set
+		.years   = -1000,			// invalid and not set
+		.PM      = false			// this will be corrected by the set function
+	};
+
+	// set the time
+	_clock.setTime(t);
 }

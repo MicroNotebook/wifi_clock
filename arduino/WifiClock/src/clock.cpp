@@ -1,7 +1,7 @@
 #include "Clock.h"
 #include "Arduino.h"
 
-Clock::Clock(byte sec, byte min, byte hr, byte day, byte month, int year)
+Clock::Clock(short sec, short min, short hr, short day, short month, int year)
 {
 	this->setTime(sec, min, hr, day, month, year);
 }
@@ -48,7 +48,7 @@ void Clock::setTime(Time time)
 	}
 }
 
-void Clock::setTime(byte sec, byte min, byte hr, byte day, byte month, int year)
+void Clock::setTime(short sec, short min, short hr, short day, short month, int year)
 {
 	if (sec < 60 && sec >= 0) {
 		_t.seconds = sec;

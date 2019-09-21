@@ -8,11 +8,11 @@
 /************ Time Structure ************/
 /****************************************/
 struct Time {
-    byte seconds;
-    byte minutes;
-    byte hours;
-    byte days;
-    byte months;
+    short seconds;
+    short minutes;
+    short hours;
+    short days;
+    short months;
     int years;
     bool PM;
     
@@ -34,11 +34,11 @@ namespace std {
     {
         size_t operator()(const Time& t) const
         {
-            return (hash<byte>()(t.seconds))
-                ^ ((hash<byte>()(t.minutes) << 1) >> 1)
-                ^ (hash<byte>()(t.hours) << 1)
-                ^ ((hash<byte>()(t.days) << 1) >> 1)
-                ^ (hash<byte>()(t.months) << 1)
+            return (hash<short>()(t.seconds))
+                ^ ((hash<short>()(t.minutes) << 1) >> 1)
+                ^ (hash<short>()(t.hours) << 1)
+                ^ ((hash<short>()(t.days) << 1) >> 1)
+                ^ (hash<short>()(t.months) << 1)
                 ^ ((hash<int>()(t.years) << 1) >> 1)
                 ^ (hash<bool>()(t.PM) << 1);
         }
@@ -53,7 +53,7 @@ class Clock
 {
 	public:
 		// Constructors
-		Clock(byte sec, byte min, byte hr, byte day=255, byte month=255, int year=-1000);
+		Clock(short sec, short min, short hr, short day=-1, short month=-1, int year=-1000);
 		Clock(Time time);
 		Clock(void);
 		
@@ -66,7 +66,7 @@ class Clock
 		// or the individual elements
 		// if any of the entries are invalid, they will be skipped over
 		void setTime(Time time);
-		void setTime(byte sec, byte min, byte hr, byte day=255, byte month=255, int year=-1000);
+		void setTime(short sec, short min, short hr, short day=-1, short month=-1, int year=-1000);
 		
 		// start the timer for the clock
 		void startClock(void); 
