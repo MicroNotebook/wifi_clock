@@ -1,14 +1,45 @@
+/*************************************************************************************************
+* Copyright (c) 2019 Micronote                                                                   *
+*                                                                                                *
+* Permission is hereby granted, free of charge, to any person obtaining a copy of this software  *
+* and associated documentation files (the "Software"), to deal in the Software without           *
+* restriction, including without limitation the rights to use, copy, modify, merge, publish,     *
+* distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the  *
+* Software is furnished to do so, subject to the following conditions:                           *
+*                                                                                                *
+* The above copyright notice and this permission notice shall be included in all copies or       *
+* substantial portions of the Software.                                                          *
+*                                                                                                *
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING  *
+* BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND     *
+* NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,   *
+* DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, *
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.        *
+*************************************************************************************************/
+
 #include "WifiClock.h"
+#include "Ticker.h"
+#include "ESP8266WiFi.h"
 #include "Clock.h"
 
-void WifiClock::start_clock(void)
+void WifiClock::start_clock(bool wifi)
 {
-	_clock.startClock();
+	if (wifi and not (_wifi_clock_set or _clock_set) and WiFi.status() == WL_CONNECTED) {
+		_wifi_timer.attach(1.0, [this](void){ this->set_time_wifi(); });
+		_wifi_clock_set = true;
+	} else if (not wifi and not (_wifi_clock_set or _clock_set)) {
+		_clock.startClock();
+		_clock_set = true;
+	}
 }
 
 void WifiClock::stop_clock(void)
 {
-	_clock.stopClock();
+	if (_wifi_clock_set) {
+		_wifi_timer.detach();
+	} else if (_clock_set) {
+		_clock.stopClock();
+	}
 }
 
 Time WifiClock::get_time(void)

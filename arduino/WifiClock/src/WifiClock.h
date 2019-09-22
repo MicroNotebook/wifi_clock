@@ -1,3 +1,22 @@
+/*************************************************************************************************
+* Copyright (c) 2019 Micronote                                                                   *
+*                                                                                                *
+* Permission is hereby granted, free of charge, to any person obtaining a copy of this software  *
+* and associated documentation files (the "Software"), to deal in the Software without           *
+* restriction, including without limitation the rights to use, copy, modify, merge, publish,     *
+* distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the  *
+* Software is furnished to do so, subject to the following conditions:                           *
+*                                                                                                *
+* The above copyright notice and this permission notice shall be included in all copies or       *
+* substantial portions of the Software.                                                          *
+*                                                                                                *
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING  *
+* BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND     *
+* NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,   *
+* DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, *
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.        *
+*************************************************************************************************/
+
 #ifndef WIFICLOCK_H
 #define WIFICLOCK_H
 
@@ -33,7 +52,6 @@
 #define CURR_INT     0
 #define CURR_HEX     0
 #define CURR_FLOAT   0
-#define CURR_TIME    0
 
 typedef void (*function_t)(void);
 typedef std::unordered_map<Time, function_t> Schedule;
@@ -81,7 +99,7 @@ class WifiClock
 	static void stop_note(void);
 	
 	// Timing Functions
-	void start_clock(void);
+	void start_clock(bool wifi);
 	void stop_clock(void);
 	Time get_time(void);
 	void set_time(Time time);
@@ -101,7 +119,7 @@ class WifiClock
 	bool event_scheduled(void);
 	
 	// Wifi Time Functions
-	void connect_to_wifi(const char* ssid, const char* password, bool disp=false);
+	bool connect_to_wifi(const char* ssid, const char* password, bool disp=false);
 	bool check_connection(void);
 	void start_wifi_time(const char* ssid, const char* password, bool disp=false);
 	void start_wifi_time(const char* ssid, const char* password, short offset, bool disp=false);
@@ -111,23 +129,21 @@ class WifiClock
 	
 	
   private:
-	LedControl _lc = LedControl(DIN, CLK, LOAD, 1);					// Initialize MAX7219
+	LedControl _lc = LedControl(DIN, CLK, LOAD, 1);	// Initialize MAX7219
 	
 	// variables to allow for easy update of the display
-	byte _curr_type = 0;	// 0: nothing
-							// 1: int
-							// 2: hex
-							// 3: float
-							// 4: time
+	byte _curr_type = CURR_NOTHING;	// 0: nothing
+									// 1: int
+									// 2: hex
+									// 3: float
 	int _curr_int = 0;
 	unsigned int _curr_hex = 0x0;
 	double _curr_float = 0.0;
 	byte _curr_dp = 0x0;
 	bool _curr_right = true;
 	bool _curr_zeros = true;
-	//Time _curr_time;
 	
-	// variables used to for time keeping in wifi clock
+	// variables used for wifi time keeping
 	WiFiUDP _ntpUDP;
 	NTPClient _timeClient = NTPClient(_ntpUDP);
 	
@@ -135,9 +151,12 @@ class WifiClock
 	Schedule _schedule;
 	
 	// variables used for time keeping
+	Ticker _wifi_timer;
 	Clock _clock;
 	short _offset = 0;
 	bool _military_time = false;
+	bool _wifi_clock_set = false;
+	bool _clock_set = false;
 	
 	// Display Helper Functions
 	int _count(int n);
