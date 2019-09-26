@@ -12,6 +12,12 @@
 |24 Pin DIP IC Socket|1|none|
 |6mm Pushbutton|3|none
 |3bit Common Cathode 7-Segment Display|2|none|
+|S8550 PNP Transistor|1|none|
+|1N4148 Diode|1|none|
+|10k Resistor|1|none|
+|1k Resistor|1|none|
+|220 Resistor|3|none|
+
 
 
 
